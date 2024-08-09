@@ -41,7 +41,8 @@
   "license": "MIT",
   "dependencies": {
     "apostrophe": "^4.0.0",
-    "normalize.css": "^8.0.1"
+    "normalize.css": "^8.0.1",
+    "vue-router": "^4.4.2"
   },
   "devDependencies": {
     "eslint": "^8.0.0",

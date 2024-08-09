@@ -6,8 +6,11 @@ module.exports = {
   },
   extend: '@apostrophecms/piece-type',
   fields: {
-    remove: [ 'slug' ],
     add: {
+      slug: {
+        type: 'slug',
+        hidden: true
+      },
       _organization: {
         type: 'relationship',
         withType: 'organization',

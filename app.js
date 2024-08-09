@@ -33,6 +33,7 @@ require('apostrophe')({
     organization: {},
     ticket: {},
     comment: {},
-    organization: {}
+    organization: {},
+    app: {}
   }
 });

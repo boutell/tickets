@@ -6,8 +6,12 @@ module.exports = {
   },
   extend: '@apostrophecms/piece-type',
   fields: {
-    remove: [ 'title', 'slug' ],
+    remove: [ 'title' ],
     add: {
+      slug: {
+        type: 'slug',
+        hidden: true
+      },
       _author: {
         type: 'relationship',
         withType: '@apostrophecms/user',
