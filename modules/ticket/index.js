@@ -92,7 +92,7 @@ module.exports = {
     group: {
       basics: {
         label: 'Basics',
-        fields: [ 'title', '_organization', '_customer', '_assignee', 'description', '_comments' ]
+        fields: [ 'title', '_organization', '_customer', 'status', '_assignee', 'description', '_comments' ]
       },
       cc: {
         label: 'Cc:',

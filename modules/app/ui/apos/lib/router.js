@@ -1,11 +1,9 @@
 import { createWebHistory, createRouter } from 'vue-router';
 
-import HomeView from 'Modules/app/components/HomeView.vue';
-import OrganizationView from 'Modules/app/components/OrganizationView.vue';
+import Tickets from 'Modules/app/components/Tickets.vue';
 
 const routes = [
-  { path: '/', component: HomeView },
-  { path: '/org/:organizationSlug', component: OrganizationView, props: true }
+  { path: '/', component: Tickets }
 ];
 
 const router = createRouter({
