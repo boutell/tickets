@@ -7,6 +7,35 @@ module.exports = {
   extend: '@apostrophecms/piece-type',
   fields: {
     add: {
+      status: {
+        type: 'select',
+        choices: [
+          {
+            value: 'new',
+            label: 'New'
+          },
+          {
+            value: 'pending',
+            label: 'Pending'
+          },
+          {
+            value: 'todo',
+            label: 'To Do'
+          },
+          {
+            value: 'inProgress',
+            label: 'In Progress'
+          },
+          {
+            value: 'canceled',
+            label: 'Canceled'
+          },
+          {
+            value: 'done',
+            label: 'Done'
+          }
+        ]
+      },
       slug: {
         type: 'slug',
         hidden: true
@@ -91,7 +120,6 @@ module.exports = {
           self.setSlug(req, doc);
         },
         async moveComments(req, doc) {
-          console.log('moving comments');
           const organizationId = doc._organization[0]._id;
           if (organizationId !== doc.organizationIdWas) {
             await self.apos.doc.db.updateMany({
@@ -104,7 +132,6 @@ module.exports = {
             });
           }
           doc.organizationIdWas = doc._organization[0]._id;
-          console.log(doc);
         }
       },
       afterArchive: {
