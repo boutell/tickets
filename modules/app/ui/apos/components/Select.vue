@@ -3,7 +3,10 @@ import { ref, watch } from 'vue';
 const model = defineModel();
 const props = defineProps({
   choices: Array,
-  label: String
+  emptyLabel: {
+    type: String,
+    default: () => '--'
+  }
 });
 </script>
 
@@ -12,7 +15,7 @@ const props = defineProps({
     <option
       value=""
     >
-      {{ label }}
+      {{ emptyLabel }}
     </option>
     <option
       v-for="choice in choices"

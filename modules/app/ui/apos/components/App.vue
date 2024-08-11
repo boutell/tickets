@@ -1,5 +1,4 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue';
 import { RouterView } from 'vue-router';
 </script>
 

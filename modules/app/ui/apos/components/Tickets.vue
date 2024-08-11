@@ -1,5 +1,5 @@
 <script setup>
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter, useRoute, RouterLink } from 'vue-router'
 const router = useRouter();
 const route = useRoute();
 const props = defineProps({
@@ -9,19 +9,19 @@ import { ref, onMounted, watch } from 'vue';
 const organizationChoices = ref([]);
 const assigneeChoices = ref([]);
 const statusChoices = ref([]);
-const organizationSlug = ref(null);
+const organizationSlug = ref('');
 const organization = ref(null);
-const assigneeId = ref(null);
+const assigneeId = ref('');
 const page = ref(1);
-const status = ref(null);
+const status = ref('');
 const tickets = ref([]);
 const q = ref('');
 const error = ref(false);
 
 onMounted(update);
-watch(organizationSlug, () => update);
-watch(assigneeId, () => update);
-watch(() => status.value, () => update);
+watch(organizationSlug, update);
+watch(assigneeId, update);
+watch(status, update);
 
 async function update() {
   console.log('in update');
@@ -57,9 +57,26 @@ async function update() {
 
 </script>
 <template>
+  <nav>
+    <RouterLink to="/">Home</RouterLink>
+  </nav>
   <section>
-    <Select v-model="organizationSlug" :choices="organizationChoices" label="Organization" />
-    <Select v-model="assigneeId" :choices="assigneeChoices" label="Assignee" />
-    <Select v-model="status" :choices="statusChoices" label="Status" />
+    <label>
+      Organization
+      <Select v-model="organizationSlug" :choices="organizationChoices" />
+    </label>
+    <label>
+      Assignee
+      <Select v-model="assigneeId" :choices="assigneeChoices" />
+    </label>
+    <label>
+      Status
+      <Select v-model="status" :choices="statusChoices" />
+    </label>
+  </section>
+  <section>
+    <ul v-for="ticket in tickets">
+      <li><RouterLink :to="`/ticket/${ticket.slug}`">{{ ticket.title }}</RouterLink></li>
+    </ul>
   </section>
 </template>
