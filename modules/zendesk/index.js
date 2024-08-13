@@ -46,7 +46,7 @@ module.exports = {
             write(`${ticketDir}/ticket.json`, ticket);
             const commentsDir = `${ticketDir}/comments`;
             ensure(commentsDir);
-            await iterate(`tickets/${ticket.id}/comments`, 'comments', async comment => {
+            await iterate(`tickets/${ticket.id}/comments?include_inline_images=true`, 'comments', async comment => {
               const attachmentsDir = `${commentsDir}/${comment.id}/attachments`;
               ensure(attachmentsDir);
               for (attachment of comment.attachments) {
@@ -55,9 +55,10 @@ module.exports = {
                   console.error(`Unknown extension for: ${attachment.content_type}`);
                 }
                 const name = `${attachmentsDir}/${attachment.id}.${extension}`;
-
-                const response = await fetch(attachment.content_url);
-                fs.writeFileSync(name, Buffer.from(await response.arrayBuffer()));
+                if (!fs.existsSync(name)) {
+                  const response = await fetch(attachment.content_url);
+                  fs.writeFileSync(name, Buffer.from(await response.arrayBuffer()));
+                }
               }
               write(`${commentsDir}/${comment.id}.json`, comment);
             });
