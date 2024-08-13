@@ -55,7 +55,9 @@ module.exports = {
                   console.error(`Unknown extension for: ${attachment.content_type}`);
                 }
                 const name = `${attachmentsDir}/${attachment.id}.${extension}`;
-                fs.writeFileSync(name, await self.apos.http.get(attachment.content_url));
+
+                const response = await fetch(attachment.content_url);
+                fs.writeFileSync(name, Buffer.from(await response.arrayBuffer()));
               }
               write(`${commentsDir}/${comment.id}.json`, comment);
             });
