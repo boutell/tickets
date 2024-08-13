@@ -1,5 +1,6 @@
 <script setup>
-import { useRouter, useRoute, RouterLink } from 'vue-router'
+import { useRouter, useRoute, RouterLink } from 'vue-router';
+import filters from '../lib/filters.js';
 const router = useRouter();
 const route = useRoute();
 const props = defineProps({
@@ -13,30 +14,6 @@ const loading = ref(true);
 
 onMounted(updateData);
 
-const filters = [
-  {
-    name: 'organization',
-    choices: ref([]),
-    label: 'Organization'
-  },
-  {
-    name: '_assignee',
-    choices: ref([]),
-    label: 'Assignee'
-  },
-  {
-    name: 'status',
-    choices: ref([]),
-    label: 'Status'
-  },
-  {
-    name: 'page'
-  },
-  {
-    name: 'q'
-  }
-];
-
 for (const filter of filters) {
   filter.current = ref(route.query[filter.name] || '');
 }
@@ -48,7 +25,6 @@ for (const { name, current } of filters) {
 }
 
 function updateRouteQuery() {
-  console.log('in updateRouteQuery');
   const query = {};
   for (const { name, current } of filters) {
     if (current.value) {
@@ -64,20 +40,21 @@ function updateRouteQuery() {
 watch(route, updateData);
 
 async function updateData() {
-  console.log('in update');
   loading.value = true;
   const allChoices = [];
   const qs = {
     choices: allChoices
   };
-  for (const { name } of filters) {
+  for (const { name, dependencies } of filters) {
     if (route.query[name]) {
       qs[name] = route.query[name];
     }
   }
-  for (const { name, choices } of filters) {
+  for (const { name, choices, dependencies } of filters) {
     if (choices) {
-      allChoices.push(name);
+      if (!Object.keys(dependencies || {}).some(name => !route.query[name])) {
+        allChoices.push(name);
+      }
     }
   }
   const response = await apos.http.get('/api/v1/ticket', {
@@ -102,10 +79,13 @@ async function updateData() {
     Loading...
   </section>
   <section v-else>
+    <nav>
+      <RouterLink to="/create">+ Create Issue</RouterLink>
+    </nav>
     <section>
       <label v-for="filter in labeled">
         {{ filter.label }}
-        <Select v-model="filter.current.value" :choices="filter.choices.value" />
+        <Select :disabled="filter.choices.value.length === 0" v-model="filter.current.value" :choices="filter.choices.value" />
       </label>
     </section>
     <section>

@@ -14,6 +14,7 @@ onMounted(async () => {
   );
   if (!results[0]) {
     notFound.value = true;
+    return;
   }
   ticket.value = results[0];
 });

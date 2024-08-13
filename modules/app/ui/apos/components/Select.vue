@@ -2,7 +2,15 @@
 import { ref, watch } from 'vue';
 const model = defineModel();
 const props = defineProps({
+  required: {
+    type: Boolean,
+    default: () => false
+  },
   choices: Array,
+  disabled: {
+    type: Boolean,
+    default: () => false
+  },
   emptyLabel: {
     type: String,
     default: () => '--'
@@ -11,7 +19,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <select v-model="model">
+  <select :disabled :required="required" v-model="model">
     <option
       value=""
     >
