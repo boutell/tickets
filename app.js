@@ -34,6 +34,7 @@ require('apostrophe')({
     ticket: {},
     comment: {},
     organization: {},
-    app: {}
+    app: {},
+    zendesk: {}
   }
 });
