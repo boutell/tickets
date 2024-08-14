@@ -95,7 +95,7 @@ module.exports = {
         doc.slug = self.options.slugPrefix + self.apos.util.slugify(doc.title);
       },
       setOrganization(req, doc) {
-        doc.organizationIds = [ doc._ticket._organization[0]._id ];
+        doc.organizationIds = [ doc._ticket[0]._organization[0]._id ];
       }
     };
   }

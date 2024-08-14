@@ -5,6 +5,10 @@ module.exports = {
         type: 'relationship',
         withType: 'organization',
         label: 'Organizations'
+      },
+      notes: {
+        type: 'string',
+        textarea: true
       }
     }
   }

@@ -7,8 +7,31 @@ module.exports = {
   extend: '@apostrophecms/piece-type',
   fields: {
     add: {
+      subtype: {
+        type: 'select',
+        required: true,
+        choices: [
+          {
+            value: 'question',
+            label: 'Question'
+          },
+          {
+            value: 'incident',
+            label: 'Incident'
+          },
+          {
+            value: 'problem',
+            label: 'Problem'
+          },
+          {
+            value: 'task',
+            label: 'Task'
+          }
+        ]
+      },
       status: {
         type: 'select',
+        required: true,
         choices: [
           {
             value: 'new',

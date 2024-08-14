@@ -11,9 +11,21 @@ module.exports = {
         type: 'slug',
         hidden: true
       },
-      domain: {
+      domains: {
+        type: 'array',
+        inline: true,
+        style: 'table',
         type: 'string',
-        label: 'Email Domain (example: company.com)'
+        label: 'Email Domains',
+        fields: {
+          add: {
+            name: {
+              type: 'string',
+              required: true,
+              label: 'Domain'
+            }
+          }
+        }
       },
       notes: {
         type: 'string',

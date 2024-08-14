@@ -41,6 +41,7 @@
   "license": "MIT",
   "dependencies": {
     "apostrophe": "^4.0.0",
+    "glob": "^11.0.0",
     "normalize.css": "^8.0.1",
     "vue-router": "^4.4.2"
   },

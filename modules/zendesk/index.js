@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { globSync } = require('glob');
 
 module.exports = {
   tasks(self) {
@@ -106,6 +107,124 @@ module.exports = {
           }
         },
         help: 'Download Zendesdk to local JSON in data/zendesk'
+      },
+      import: {
+        async task(argv) {
+          const data = `${__dirname}/../../data/zendesk`;
+          const req = self.apos.task.getReq();
+          if (!fs.existsSync(data)) {
+            throw new Error('Run the zendesk:download task first.');
+          }
+
+          // const userJsonFiles = globSync(`${data}/users/*.json`);
+          // for (const userJsonFile of userJsonFiles) {
+          //   const info = JSON.parse(fs.readFileSync(userJsonFile));
+          //   const user = self.apos.user.newInstance();
+          //   user.title = info.name;
+          //   user.email = info.email;
+          //   user.username = info.email;
+          //   user._organizations = [
+          //     {
+          //       _id: `org${info.organization_id}`
+          //     }
+          //   ];
+          //   user.role = {
+          //     'admin': 'admin',
+          //     'agent': 'editor',
+          //     'end-user': 'guest'
+          //   }[info.role];
+          //   user.createdAt = new Date(info.created_at);
+          //   user.updatedAt = new Date(info.updated_at);
+          //   user.notes = info.notes;
+          //   user.legacy = info;
+          //   user._id = `user${info.id}`;
+          //   console.log(`inserting ${user._id}`);
+          //   await self.apos.user.insert(req, user);
+          // }
+
+          // const orgJsonFiles = globSync(`${data}/organizations/*.json`);
+          // for (const orgJsonFile of orgJsonFiles) {
+          //   const info = JSON.parse(fs.readFileSync(orgJsonFile));
+          //   const org = self.apos.organization.newInstance();
+          //   org.title = info.name;
+          //   org.notes = info.notes;
+          //   org.legacy = info;
+          //   org.createdAt = new Date(info.created_at);
+          //   org.updatedAt = new Date(info.updated_at);
+          //   org.domains = info.domain_names.map(name => ({ name }));
+          //   org._id = `org${info.id}`;
+          //   console.log(`inserting ${org._id}`);
+          //   await self.apos.organization.insert(req, org);
+          // }
+
+          const ticketJsonFiles = globSync(`${data}/tickets/*/ticket.json`);
+          for (const ticketJsonFile of ticketJsonFiles) {
+            const info = JSON.parse(fs.readFileSync(ticketJsonFile));
+            let ticket = self.apos.ticket.newInstance();
+            ticket.title = info.subject;
+            ticket.description = info.description;
+            ticket._customer = [
+              {
+                _id: `user${info.requester_id}`
+              }
+            ];
+            ticket._assignee = [
+              {
+                _id: `user${info.assignee_id}`
+              }
+            ];
+            ticket._organization = [
+              {
+                _id: `org${info.organization_id}`
+              }
+            ];
+            ticket._cc = [...(new Set([...info.email_cc_ids, ...info.follower_ids, ...info.collaborator_ids]))].map(id => ({
+              _id: `user${id}`
+            }));
+            ticket.legacy = info;
+            ticket.createdAt = new Date(info.created_at);
+            ticket.updatedAt = new Date(info.updated_at);
+            ticket._id = `ticket${info.id}`;
+            const legacyTicketId = info.id;
+            console.log(`inserting ${ticket._id}`);
+            ticket = await self.apos.ticket.insert(req, ticket);
+
+            const commentJsonFiles = globSync(`${data}/tickets/${info.id}/comments/*.json`);
+            for (commentJsonFile of commentJsonFiles) {
+              const info = JSON.parse(fs.readFileSync(commentJsonFile));
+              const comment = self.apos.comment.newInstance();
+              comment.text = info.body;
+              comment._ticket = [ ticket ];
+              comment._author = [
+                {
+                  _id: `user${info.author_id}`
+                }
+              ];
+              comment.legacy = info;
+              comment.createdAt = new Date(info.created_at);
+              comment.updatedAt = new Date(info.updated_at);
+              comment._id = `comment${info.id}`;
+
+              const attachmentFiles = globSync(`${data}/tickets/${legacyTicketId}/comments/${info.id}/attachments/*`);
+              const attachments = [];
+              for (const attachmentFile of attachmentFiles) {
+                const attachment = self.apos.attachment.insert(req, {
+                  path: attachmentFile,
+                  name: attachmentFile
+                });
+                attachments.push(attachment);
+              }
+              comment.attachments = attachments.map(attachment => ({
+                attachment
+              }));
+
+              console.log(`inserting ${comment._id}`);
+              console.log(JSON.stringify(comment, null, '  '));
+              await self.apos.comment.insert(req, comment);
+            }
+          }
+        },
+        help: 'Imports data previously obtained from Zendesk using the download task'
       }
     }
   }
@@ -154,6 +273,6 @@ const extensions = {
   "application/x-compressed-tar": ".tar.gz",
   "application/x-bzip-compressed-tar": ".tar.bz2",
   "application/x-xz-compressed-tar": ".tar.xz",
-  "video/quicktime": ".mov",
+  "video/quicktime": "mov",
   "application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx"
 };
