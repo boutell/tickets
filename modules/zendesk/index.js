@@ -116,46 +116,42 @@ module.exports = {
             throw new Error('Run the zendesk:download task first.');
           }
 
-          // const userJsonFiles = globSync(`${data}/users/*.json`);
-          // for (const userJsonFile of userJsonFiles) {
-          //   const info = JSON.parse(fs.readFileSync(userJsonFile));
-          //   const user = self.apos.user.newInstance();
-          //   user.title = info.name;
-          //   user.email = info.email;
-          //   user.username = info.email;
-          //   user._organizations = [
-          //     {
-          //       _id: `org${info.organization_id}`
-          //     }
-          //   ];
-          //   user.role = {
-          //     'admin': 'admin',
-          //     'agent': 'editor',
-          //     'end-user': 'guest'
-          //   }[info.role];
-          //   user.createdAt = new Date(info.created_at);
-          //   user.updatedAt = new Date(info.updated_at);
-          //   user.notes = info.notes;
-          //   user.legacy = info;
-          //   user._id = `user${info.id}`;
-          //   console.log(`inserting ${user._id}`);
-          //   await self.apos.user.insert(req, user);
-          // }
+          const orgJsonFiles = globSync(`${data}/organizations/*.json`);
+          for (const orgJsonFile of orgJsonFiles) {
+            const info = JSON.parse(fs.readFileSync(orgJsonFile));
+            const org = self.apos.organization.newInstance();
+            org.title = info.name;
+            org.notes = info.notes;
+            org.legacy = info;
+            org.domains = info.domain_names.map(name => ({ name }));
+            setIds(org, 'org', info);
+            await self.apos.organization.insert(req, org);
+            await fixTimes(org, info);
+          }
 
-          // const orgJsonFiles = globSync(`${data}/organizations/*.json`);
-          // for (const orgJsonFile of orgJsonFiles) {
-          //   const info = JSON.parse(fs.readFileSync(orgJsonFile));
-          //   const org = self.apos.organization.newInstance();
-          //   org.title = info.name;
-          //   org.notes = info.notes;
-          //   org.legacy = info;
-          //   org.createdAt = new Date(info.created_at);
-          //   org.updatedAt = new Date(info.updated_at);
-          //   org.domains = info.domain_names.map(name => ({ name }));
-          //   org._id = `org${info.id}`;
-          //   console.log(`inserting ${org._id}`);
-          //   await self.apos.organization.insert(req, org);
-          // }
+          const userJsonFiles = globSync(`${data}/users/*.json`);
+          for (const userJsonFile of userJsonFiles) {
+            const info = JSON.parse(fs.readFileSync(userJsonFile));
+            const user = self.apos.user.newInstance();
+            user.title = info.name;
+            user.email = info.email;
+            user.username = info.email;
+            user._organizations = [
+              {
+                _id: `org${info.organization_id}`
+              }
+            ];
+            user.role = {
+              'admin': 'admin',
+              'agent': 'editor',
+              'end-user': 'guest'
+            }[info.role];
+            user.notes = info.notes;
+            user.legacy = info;
+            setIds(user, 'user', info);
+            await self.apos.user.insert(req, user);
+            await fixTimes(user, info);
+          }
 
           const ticketJsonFiles = globSync(`${data}/tickets/*/ticket.json`);
           for (const ticketJsonFile of ticketJsonFiles) {
@@ -184,10 +180,11 @@ module.exports = {
             ticket.legacy = info;
             ticket.createdAt = new Date(info.created_at);
             ticket.updatedAt = new Date(info.updated_at);
-            ticket._id = `ticket${info.id}`;
+            setIds(ticket, 'ticket', info);
             const legacyTicketId = info.id;
             console.log(`inserting ${ticket._id}`);
             ticket = await self.apos.ticket.insert(req, ticket);
+            await fixTimes(ticket, info);
 
             const commentJsonFiles = globSync(`${data}/tickets/${info.id}/comments/*.json`);
             for (commentJsonFile of commentJsonFiles) {
@@ -203,7 +200,7 @@ module.exports = {
               comment.legacy = info;
               comment.createdAt = new Date(info.created_at);
               comment.updatedAt = new Date(info.updated_at);
-              comment._id = `comment${info.id}`;
+              setIds(comment, 'comment', info);
 
               const attachmentFiles = globSync(`${data}/tickets/${legacyTicketId}/comments/${info.id}/attachments/*`);
               const attachments = [];
@@ -221,7 +218,26 @@ module.exports = {
               console.log(`inserting ${comment._id}`);
               console.log(JSON.stringify(comment, null, '  '));
               await self.apos.comment.insert(req, comment);
+              await fixTimes(comment, info);
             }
+          }
+
+          function setIds(piece, prefix, info) {
+            piece._id = `${prefix}${info.id}`;
+            piece.aposDocId = piece._id;
+          }
+
+          async function fixTimes(piece, info) {
+            piece.createdAt = new Date(info.created_at);
+            piece.updatedAt = new Date(info.updated_at);
+            await self.apos.doc.db.updateOne({
+              _id: piece._id
+            }, {
+              $set: {
+                createdAt: piece.createdAt,
+                updatedAt: piece.updatedAt
+              }
+            });
           }
         },
         help: 'Imports data previously obtained from Zendesk using the download task'
