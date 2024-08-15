@@ -85,7 +85,7 @@ async function updateData() {
     <section>
       <label v-for="filter in labeled">
         {{ filter.label }}
-        <Select :disabled="filter.choices.value.length === 0" v-model="filter.current.value" :choices="filter.choices.value" />
+        <Select :disabled="!filter.choices.value?.length" v-model="filter.current.value" :choices="filter.choices.value" />
       </label>
     </section>
     <section>

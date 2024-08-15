@@ -205,7 +205,7 @@ module.exports = {
               const attachmentFiles = globSync(`${data}/tickets/${legacyTicketId}/comments/${info.id}/attachments/*`);
               const attachments = [];
               for (const attachmentFile of attachmentFiles) {
-                const attachment = self.apos.attachment.insert(req, {
+                const attachment = await self.apos.attachment.insert(req, {
                   path: attachmentFile,
                   name: attachmentFile
                 });

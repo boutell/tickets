@@ -15,7 +15,6 @@ module.exports = {
         type: 'array',
         inline: true,
         style: 'table',
-        type: 'string',
         label: 'Email Domains',
         fields: {
           add: {

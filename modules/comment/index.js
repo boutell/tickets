@@ -29,7 +29,7 @@ module.exports = {
         inline: true,
         fields: {
           add: {
-            file: {
+            attachment: {
               type: 'attachment',
               required: true,
               fileGroups: [ 'office', 'images' ]

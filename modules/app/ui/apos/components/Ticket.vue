@@ -1,10 +1,12 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRouter, useRoute, RouterLink } from 'vue-router';
+import { marked } from 'marked';
 const ticket = ref(null);
 const notFound = ref(false);
 const router = useRouter();
 const route = useRoute();
+
 onMounted(async () => {
   const { results } = await apos.http.get(
     `/api/v1/ticket?slug=${route.params.slug}`,
@@ -19,6 +21,10 @@ onMounted(async () => {
   ticket.value = results[0];
 });
 
+function render(markdown) {
+  return marked.parse(markdown);
+}
+
 </script>
 <template>
   <nav>
@@ -28,9 +34,7 @@ onMounted(async () => {
   </nav>
   <article v-if="ticket">
     <h2>{{ ticket.title }}</h2>
-    <div>
-      <!-- TODO render markdown safely -->
-      {{ ticket.description }}
+    <div v-html="render(ticket.description)"
     </div>
   </article>
   <article v-else-if="notFound">
