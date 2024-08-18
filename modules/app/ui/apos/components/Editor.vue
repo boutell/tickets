@@ -1,10 +1,14 @@
 <template>
   <div v-if="editor" class="container">
-    <div class="control-group">
-      <Select v-model="blockType" @user-change="changeBlockType" :empty="false" :choices="toChoices(blockTypes)" />
-      <button v-for="button in buttons" :key="button" @click="enact(button)" :disabled="isDisabled(button)" :class="{ 'is-active': isActive(button) }">
-        {{ button }}
-      </button>
+    <div class="controls">
+      <span class="control-group">
+        <Select v-model="blockType" @user-change="changeBlockType" :empty="false" :choices="toChoices(blockTypes)" />
+      </span>
+      <span class="control-group" v-for="buttons in buttonGroups">
+        <button v-for="button in buttons" :key="button" @click="enact(button)" :disabled="isDisabled(button)" :class="{ 'is-active': isActive(button) }">
+          {{ button }}
+        </button>
+      </span>
     </div>
     <editor-content :editor="editor" />
   </div>
@@ -65,11 +69,19 @@ const blockTypes = [
   'heading4'
 ];
 
-const buttons = [
-  'bold',
-  'italic',
-  'strike',
-  'code'
+const buttonGroups = [
+  [
+    'bold',
+    'italic',
+    'strike',
+    'code'
+  ],
+  [
+    'bulletList',
+    'orderedList',
+    'codeBlock',
+    'blockquote'
+  ]
 ];
 
 function changeBlockType() {
