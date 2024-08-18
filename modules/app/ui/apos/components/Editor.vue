@@ -6,7 +6,7 @@
       </span>
       <span class="control-group" v-for="buttons in buttonGroups">
         <button v-for="button in buttons" :key="button" @click="enact(button)" :disabled="isDisabled(button)" :class="{ 'is-active': isActive(button) }">
-          <Component :is="icons[button]" />
+          <Component :is="icons[button]" :title="labels[button]" />
         </button>
       </span>
     </div>
@@ -103,6 +103,22 @@ const icons = {
   blockquote: FormatBlockquote
 };
 
+const labels = {
+  paragraph: 'Paragraph',
+  heading1: 'Heading 1',
+  heading2: 'Heading 2',
+  heading3: 'Heading 3',
+  heading4: 'Heading 4',
+  bulletList: 'Bulleted List',
+  orderedList: 'Numbered List',
+  codeBlock: 'Code Block',
+  blockquote: 'Block Quote',
+  bold: 'Bold',
+  italic: 'Italic',
+  strike: 'Strikethrough',
+  code: 'Code'
+};
+
 function changeBlockType() {
   enact(blockType.value || blockTypes[0]);
 }
@@ -156,14 +172,15 @@ function parse(name) {
     name,
     tool,
     method,
-    args
+    args,
+    label: labels[name]
   };
 }
 
 function toChoices(values) {
   return values.map(value => ({
     value,
-    label: value
+    label: labels[value]
   }));
 }
 
