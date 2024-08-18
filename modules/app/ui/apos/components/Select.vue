@@ -1,6 +1,8 @@
 <script setup>
-import { ref, watch } from 'vue';
 const model = defineModel();
+// Useful when you need to distinguish user changes
+// from your own changes caused by 2-way binding
+const emit = defineEmits([ 'userChange' ]);
 const props = defineProps({
   required: {
     type: Boolean,
@@ -8,6 +10,10 @@ const props = defineProps({
   },
   choices: Array,
   disabled: {
+    type: Boolean,
+    default: () => false
+  },
+  empty: {
     type: Boolean,
     default: () => false
   },
@@ -19,14 +25,15 @@ const props = defineProps({
 </script>
 
 <template>
-  <select :disabled :required="required" v-model="model">
-    <option
+  <select :disabled :required="required" v-model="model" @change="emit('userChange')">
+    <option v-if="empty"
       value=""
     >
       {{ emptyLabel }}
     </option>
     <option
       v-for="choice in choices"
+      :key="choice.value"
       :value="choice.value"
     >
       {{ choice.label }}

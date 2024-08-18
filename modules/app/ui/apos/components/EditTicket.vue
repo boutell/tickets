@@ -1,6 +1,7 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue';
 import { useRouter, useRoute, RouterLink } from 'vue-router';
+import Editor from './Editor.vue';
 import allFilters from '../lib/filters.js';
 
 const route = useRoute();
@@ -16,9 +17,13 @@ const filters = allFilters.filter(filter => {
   }
   return true;
 });
+console.log(filters);
 const ticket = reactive({});
 const notFound = ref(false);
 const choices = reactive({});
+for (const filter of filters) {
+  choices[filter.name] = [];
+}
 
 onMounted(async () => {
   await manageChoices();
@@ -50,6 +55,7 @@ onMounted(async () => {
 });
 
 async function manageChoices() {
+  console.log('** choices defined');
   for (const filter of filters) {
     if (!filter.choices) {
       continue;
@@ -133,6 +139,12 @@ function toChoice(result) {
     label: result.title
   };
 }
+
+function getDisabled(name) {
+  console.log(name, choices[name]);
+  return choices[name].length === 0;
+}
+
 </script>
 <template>
   <nav>
@@ -150,12 +162,13 @@ function toChoice(result) {
     </label>
     <label>
       <span>Description</span>
+      <Editor />
       <textarea required v-model="ticket.description"></textarea>
     </label>
     <section>
       <label v-for="filter in filters">
         <span>{{ filter.label }}</span>
-        <Select :disabled="choices[filter.name.value].length === 0" :required="isRequired(filter.name)" v-model="ticket[filter.name]" :choices="choices[filter.name]" />
+        <Select :empty="true" :disabled="getDisabled(filter.name)" :required="isRequired(filter.name)" v-model="ticket[filter.name]" :choices="choices[filter.name]" />
       </label>
     </section>
     <button type="submit">Submit</button>

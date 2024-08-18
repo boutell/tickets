@@ -64,6 +64,7 @@ async function updateData() {
   tickets.value = response.results;
   for (const { name, choices } of filters) {
     if (choices) {
+      console.log(name, response.choices[name]);
       choices.value = response.choices[name];
     }
   }
@@ -84,8 +85,8 @@ async function updateData() {
     </nav>
     <section>
       <label v-for="filter in labeled">
-        {{ filter.label }}
-        <Select :disabled="!filter.choices.value?.length" v-model="filter.current.value" :choices="filter.choices.value" />
+        <span>{{ filter.label }}</span>
+        <Select :empty="true" :disabled="!filter.choices.value?.length" v-model="filter.current.value" :choices="filter.choices.value" />
       </label>
     </section>
     <section>
@@ -95,3 +96,13 @@ async function updateData() {
     </section>
   </section>
 </template>
+
+<style sfoped>
+label {
+  display: flex;
+  margin-bottom: 1em;
+}
+label span {
+  width: 240px;
+}
+</style>
