@@ -2,7 +2,7 @@
   <div v-if="editor" class="container">
     <div class="control-group">
       <Select v-model="blockType" @user-change="changeBlockType" :empty="false" :choices="toChoices(blockTypes)" />
-      <button v-for="button in buttons" :key="button" @click="enact(button)" :disabled="isDisabled(button)" :class="{ isActive: isActive(button) }">
+      <button v-for="button in buttons" :key="button" @click="enact(button)" :disabled="isDisabled(button)" :class="{ 'is-active': isActive(button) }">
         {{ button }}
       </button>
     </div>
@@ -145,7 +145,11 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.is-active {
+  font-weight: bold;
+}
+
 /* Basic editor styles */
 .tiptap {
   :first-child {

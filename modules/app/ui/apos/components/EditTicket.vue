@@ -160,11 +160,14 @@ function getDisabled(name) {
       <span>Title</span>
       <input required v-model="ticket.title" />
     </label>
-    <label>
+    <!-- Wrapping contenteditable in a label
+     does not work, by design. TODO: click handler
+     on the substitute label here to emulate the
+     usual focus passing via blatant JS cheating -->
+    <div class="editor-wrapper">
       <span>Description</span>
-      <Editor />
-      <textarea required v-model="ticket.description"></textarea>
-    </label>
+      <Editor v-model="ticket.description" />
+    </div>
     <section>
       <label v-for="filter in filters">
         <span>{{ filter.label }}</span>
@@ -179,11 +182,11 @@ function getDisabled(name) {
   nav {
     margin-bottom: 2em;
   }
-  label {
+  label, .editor-wrapper {
     display: flex;
     margin-bottom: 1em;
   }
-  label span {
+  label span, .editor-wrapper span {
     width: 240px;
   }
 </style>
