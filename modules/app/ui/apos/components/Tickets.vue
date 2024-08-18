@@ -91,7 +91,7 @@ async function updateData() {
     </section>
     <section>
       <ul v-for="ticket in tickets">
-        <li><RouterLink :to="`/ticket/${ticket.slug}`">{{ ticket.title }}</RouterLink></li>
+        <li><RouterLink :to="`/ticket/${ticket._id.substring(6)}`">{{ ticket.title }}</RouterLink></li>
       </ul>
     </section>
   </section>

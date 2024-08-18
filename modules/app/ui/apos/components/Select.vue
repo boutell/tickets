@@ -8,6 +8,10 @@ const props = defineProps({
     type: Boolean,
     default: () => false
   },
+  multiple: {
+    type: Boolean,
+    default: () => false
+  },
   choices: Array,
   disabled: {
     type: Boolean,
@@ -25,7 +29,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <select :disabled :required="required" v-model="model" @change="emit('userChange')">
+  <select :required="required" v-model="model" @change="emit('userChange')">
     <option v-if="empty"
       value=""
     >

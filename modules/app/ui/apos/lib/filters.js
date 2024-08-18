@@ -27,6 +27,16 @@ const filters = [
     edit: true
   },
   {
+    name: '_cc',
+    choices: ref([]),
+    multiple: true,
+    label: 'Cc:',
+    dependencies: {
+      '_organization': 'organizationsOrAgent'
+    },
+    edit: true
+  },
+  {
     name: '_assignee',
     choices: ref([]),
     label: 'Assignee',

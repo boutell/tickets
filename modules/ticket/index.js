@@ -134,6 +134,37 @@ module.exports = {
   handlers(self) {
     return {
       beforeInsert: {
+        async setId(req, doc) {
+          if (doc._id) {
+            // Import, for instance
+            return;
+          }
+          // MongoDB doesn't provide consecutive ids, but
+          // they are widely preferred for tickets.
+          // Use a lock to prevent race conditions
+          await self.apos.lock.withLock('ticket-id', async () => {
+            // Use the published global doc of the default locale
+            // as a single shared source of truth for the next
+            // ticket id
+            const criteria = {
+              type: '@apostrophecms/global',
+              aposLocale: `${self.apos.i18n.defaultLocale}:published`
+            };
+            const lastId = (await self.apos.doc.db.findOne(criteria))?.lastTicketId || 0;
+            const nextId = lastId++;
+            doc._id = `ticket${nextId}`;
+            // Tickets are not localized
+            doc.aposDocId = doc._id;
+            await self.apos.doc.db.updateOne(
+              criteria,
+              {
+                $set: {
+                  lastTicketId: nextId
+                }
+              }
+            );
+          });
+        },
         setSlug(req, doc) {
           self.setSlug(req, doc);
         }

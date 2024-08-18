@@ -4,21 +4,23 @@ import { useRouter, useRoute, RouterLink } from 'vue-router';
 import { marked } from 'marked';
 const ticket = ref(null);
 const notFound = ref(false);
-const router = useRouter();
 const route = useRoute();
 
 onMounted(async () => {
-  const { results } = await apos.http.get(
-    `/api/v1/ticket?slug=${route.params.slug}`,
-    {
-      busy: true
+  try {
+    ticket.value = await apos.http.get(
+      `/api/v1/ticket/ticket${route.params.number}`,
+      {
+        busy: true
+      }
+    );
+  } catch (e) {
+    if (e.status === 404) {
+      notFound.value = true;
+    } else {
+      throw e;
     }
-  );
-  if (!results[0]) {
-    notFound.value = true;
-    return;
   }
-  ticket.value = results[0];
 });
 
 function render(markdown) {
@@ -30,7 +32,8 @@ function render(markdown) {
   <nav>
     <RouterLink to="/">Home</RouterLink>
       &gt;
-    <RouterLink v-if="ticket" :to="`/ticket/${route.params.slug }`">{{ ticket.title }}</RouterLink>
+    <RouterLink v-if="ticket" :to="`/ticket/${route.params.number }`">{{ ticket.title }}</RouterLink>
+    <RouterLink v-if="ticket?._edit" :to="`/ticket/${route.params.number }/edit`">Edit</RouterLink>
   </nav>
   <article v-if="ticket">
     <h2>{{ ticket.title }}</h2>

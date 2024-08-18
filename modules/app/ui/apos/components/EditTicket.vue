@@ -5,7 +5,7 @@ import Editor from './Editor.vue';
 import allFilters from '../lib/filters.js';
 
 const route = useRoute();
-const creating = ref(!route.query.slug);
+const creating = ref(!route.params.number);
 const loading = ref(true);
 const agent = apos.login.user.role !== 'guest';
 const filters = allFilters.filter(filter => {
@@ -17,7 +17,6 @@ const filters = allFilters.filter(filter => {
   }
   return true;
 });
-console.log(filters);
 const ticket = reactive({});
 const notFound = ref(false);
 const choices = reactive({});
@@ -26,8 +25,9 @@ for (const filter of filters) {
 }
 
 onMounted(async () => {
-  await manageChoices();
-  if (creating) {
+  console.log('in onMounted');
+  if (creating.value) {
+    console.log('creating because:', route.params.number);
     // Populated with the defaults
     Object.assign(ticket, await apos.http.post(
       '/api/v1/ticket',
@@ -39,50 +39,79 @@ onMounted(async () => {
       }
     ));
   } else {
-    const { results } = await apos.http.get(
-      `/api/v1/ticket?slug=${route.params.slug}`,
-      {
-        busy: true
+    try {
+      Object.assign(ticket, await apos.http.get(
+        `/api/v1/ticket/ticket${route.params.number}`,
+        {
+          busy: true
+        }
+      ));
+      console.log('ORG:', ticket._organization[0].title);
+    } catch (e) {
+      if (e.status === 404) {
+        notFound.value = true;
+      } else {
+        throw e;
       }
-    );
-    if (!results[0]) {
-      notFound.value = true;
-      return;
     }
-    Object.assign(ticket, results[0]);
-    loading = false;
   }
+  for (const filter of filters) {
+    if (!filter.multiple) {
+      ticket[filter.name] = ticket[filter.name]?.[0]?._id;
+    } else {
+      console.log(`** ${filter.name}`);
+      ticket[filter.name] = (ticket[filter.name] || []).map(value => value._id);
+    }
+  }
+  await manageChoices();
+  loading.value = false;
 });
 
 async function manageChoices() {
-  console.log('** choices defined');
   for (const filter of filters) {
+    console.log('--> ' + filter.name);
     if (!filter.choices) {
+      console.log('not suited');
       continue;
     }
     const field = apos.ticket.schema.find(({ name }) => name === filter.name);
     if (field.choices) {
       choices[filter.name] = field.choices;
+      console.log('hardcoded');
       continue;
     }
     for (const name of Object.keys(filter.dependencies || {})) {
       watch(() => ticket[name], updateChoices);
     }
-    if (!filter.dependencies) {
-      await updateChoices();
-    }
+    await updateChoices();
     async function updateChoices() {
+      console.log('fetching');
       const qs = {
         ...filter.qs
       };
       for (const [ name, narrowBy ] of Object.entries(filter.dependencies || {})) {
         if (!ticket[name]) {
+          console.log('missing prereq:' + name);
           choices[filter.name] = [];
           return;
         }
         qs[narrowBy] = ticket[name];
       }
-      choices[filter.name] = await getAllChoices(field.withType, qs);
+      console.log('Fetching choices for:', filter.name);
+      // TODO abstract this filter away to an $or on the server
+      // side, for now it's a hack here on the client side
+      if (qs.organizationsOrAgent) {
+        choices[filter.name] = [
+          ...await getAllChoices(field.withType, {
+            _organizations: qs.organizationsOrAgent
+          }),
+          ...await getAllChoices(field.withType, {
+            role: [ 'editor', 'admin' ]
+          })
+        ];
+      } else {
+        choices[filter.name] = await getAllChoices(field.withType, qs);
+      }
     }
   }
 }
@@ -114,6 +143,17 @@ async function getAllChoices(type, qs) {
 }
 
 async function submit() {
+  const body = {
+    ...ticket
+  };
+  for (const filter of filters) {
+    const value = ticket[filter.name];
+    if (!filter.multiple) {
+      body[filter.name] = value ? [ { _id: value } ] : [];
+    } else {
+      body[filter.name] = value.map(value => ({ _id: value }));
+    }
+  }
   if (route.params.slug) {
     await apos.http.patch(`/api/v1/ticket/${route.params.slug}`, {
       body: ticket,
@@ -141,7 +181,6 @@ function toChoice(result) {
 }
 
 function getDisabled(name) {
-  console.log(name, choices[name]);
   return choices[name].length === 0;
 }
 
@@ -150,10 +189,14 @@ function getDisabled(name) {
   <nav>
     <RouterLink to="/">Home</RouterLink>
       &gt;
-    <RouterLink to="/create">Create Ticket</RouterLink>
+    <RouterLink :to="`/ticket/${route.params.number }`">{{ ticket.title }}</RouterLink>
+    <RouterLink :to="`/ticket/${route.params.number }/edit`">Edit</RouterLink>
   </nav>
   <section v-if="notFound">
     Not Found
+  </section>
+  <section v-else-if="loading">
+    Loading...
   </section>
   <form v-else @submit.prevent="submit">
     <label>
@@ -163,7 +206,8 @@ function getDisabled(name) {
     <section>
       <label v-for="filter in filters">
         <span>{{ filter.label }}</span>
-        <Select :empty="true" :disabled="getDisabled(filter.name)" :required="isRequired(filter.name)" v-model="ticket[filter.name]" :choices="choices[filter.name]" />
+        <SelectMultiple v-if="filter.multiple" :disabled="getDisabled(filter.name)" v-model="ticket[filter.name]" :choices="choices[filter.name]" />
+        <Select v-else :empty="true" :disabled="getDisabled(filter.name)" :required="isRequired(filter.name)" v-model="ticket[filter.name]" :choices="choices[filter.name]" />
       </label>
     </section>
     <!-- Wrapping contenteditable in a label
@@ -185,8 +229,8 @@ function getDisabled(name) {
   label, .editor-wrapper {
     display: flex;
     margin-bottom: 1em;
-  }
-  label span, .editor-wrapper span {
-    width: 240px;
+    span {
+      width: 240px;
+    }
   }
 </style>

@@ -108,7 +108,6 @@ watch(() => {
       editor.value.isActive(tool, args)
     );
 }, active => {
-  console.log('active:', JSON.stringify(active));
   const newBlockType = active[0]?.name || blockTypes[0].name;
   if (newBlockType !== blockType.value) {
     blockType.value = newBlockType;
@@ -131,7 +130,6 @@ function enact(name) {
 
 function enactOn(context, name) {
   const { method, args } = parse(name);
-  console.log(`--> ${name} ${method} ${JSON.stringify(args)}`);
   return context.chain().focus()[method](args).run();
 }
 
@@ -176,11 +174,11 @@ onBeforeUnmount(() => {
 .container {
   min-height: 400px;
   max-height: 80%;
-  width: 100%;
+  width: 560px;
 }
 .content {
   width: 100%;
-  height: 100%;
+  height: 560px;
 }
 .controls {
   button {
@@ -203,7 +201,7 @@ onBeforeUnmount(() => {
 
 /* Basic editor styles */
 :deep(.tiptap) {
-  width: 100%;
+  width: 560px;
   height: 60vh;
   overflow: auto;
   border: 1px solid #767676;

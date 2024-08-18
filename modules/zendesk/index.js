@@ -190,7 +190,7 @@ module.exports = {
             for (commentJsonFile of commentJsonFiles) {
               const info = JSON.parse(fs.readFileSync(commentJsonFile));
               const comment = self.apos.comment.newInstance();
-              comment.text = info.body;
+              comment.text = info.html_body;
               comment._ticket = [ ticket ];
               comment._author = [
                 {
