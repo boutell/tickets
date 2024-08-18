@@ -2,11 +2,11 @@
   <div v-if="editor" class="container">
     <div class="controls">
       <span class="control-group">
-        <Select v-model="blockType" @user-change="changeBlockType" :empty="false" :choices="toChoices(blockTypes)" />
+        <Select class="block-type" v-model="blockType" @user-change="changeBlockType" :empty="false" :choices="toChoices(blockTypes)" />
       </span>
       <span class="control-group" v-for="buttons in buttonGroups">
         <button v-for="button in buttons" :key="button" @click="enact(button)" :disabled="isDisabled(button)" :class="{ 'is-active': isActive(button) }">
-          {{ button }}
+          <Component :is="icons[button]" />
         </button>
       </span>
     </div>
@@ -21,6 +21,14 @@ import StarterKit from '@tiptap/starter-kit';
 import Select from './Select.vue';
 import { Editor, EditorContent } from '@tiptap/vue-3'
 import { ref, onBeforeUnmount, watch } from 'vue';
+import FormatBold from 'vue-material-design-icons/FormatBold.vue';
+import FormatItalic from 'vue-material-design-icons/FormatItalic.vue';
+import FormatStrikethrough from 'vue-material-design-icons/FormatStrikethrough.vue';
+import CodeBraces from 'vue-material-design-icons/CodeBraces.vue';
+import FormatListBulleted from 'vue-material-design-icons/FormatListBulleted.vue';
+import FormatListNumbered from 'vue-material-design-icons/FormatListNumbered.vue';
+import CodeBracesBox from 'vue-material-design-icons/CodeBlockTags.vue';
+import FormatBlockquote from 'vue-material-design-icons/FormatQuoteOpen.vue';
 
 const editor = ref(new Editor({
   extensions: [
@@ -83,6 +91,17 @@ const buttonGroups = [
     'blockquote'
   ]
 ];
+
+const icons = {
+  bold: FormatBold,
+  italic: FormatItalic,
+  strike: FormatStrikethrough,
+  code: CodeBraces,
+  bulletList: FormatListBulleted,
+  orderedList: FormatListNumbered,
+  codeBlock: CodeBracesBox,
+  blockquote: FormatBlockquote
+};
 
 function changeBlockType() {
   enact(blockType.value || blockTypes[0]);
@@ -158,8 +177,25 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-.is-active {
-  font-weight: bold;
+@import 'vue-material-design-icons/styles';
+
+.controls {
+  button {
+    all: unset;
+    outline: revert;
+    margin-left: 2px;
+    margin-right: 2px;
+  }
+  button.is-active {
+    background-color: #def;
+  }
+  .block-type {
+    transform: translate(0, -8px);
+  }
+}
+
+.control-group {
+  margin-right: 12px;
 }
 
 /* Basic editor styles */
