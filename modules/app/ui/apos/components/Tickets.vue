@@ -81,7 +81,7 @@ async function updateData() {
   </section>
   <section v-else>
     <nav>
-      <RouterLink to="/create">+ Create Issue</RouterLink>
+      <RouterLink to="/ticket/create">+ Create Issue</RouterLink>
     </nav>
     <section>
       <label v-for="filter in labeled">

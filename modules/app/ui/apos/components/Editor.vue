@@ -5,9 +5,9 @@
         <Select class="block-type" v-model="blockType" @user-change="changeBlockType" :empty="false" :choices="toChoices(blockTypes)" />
       </span>
       <span class="control-group" v-for="buttons in buttonGroups">
-        <button v-for="button in buttons" :key="button" @click="enact(button)" :disabled="isDisabled(button)" :class="{ 'is-active': isActive(button) }">
+        <Component :is="getButtonType(button)" v-for="button in buttons" :key="button" @click="(arg) => enact(button, arg)" :disabled="isDisabled(button)" :class="{ 'is-active': isActive(button) }">
           <Component :is="icons[button]" :title="labels[button]" />
-        </button>
+        </Component>
       </span>
     </div>
     <editor-content class="content" :editor="editor" />
@@ -19,6 +19,7 @@ import ListItem from '@tiptap/extension-list-item';
 import TextStyle from '@tiptap/extension-text-style';
 import StarterKit from '@tiptap/starter-kit';
 import Select from './Select.vue';
+import AttachmentButton from './AttachmentButton.vue';
 import { Editor, EditorContent } from '@tiptap/vue-3'
 import { ref, onBeforeUnmount, watch } from 'vue';
 import FormatBold from 'vue-material-design-icons/FormatBold.vue';
@@ -29,6 +30,8 @@ import FormatListBulleted from 'vue-material-design-icons/FormatListBulleted.vue
 import FormatListNumbered from 'vue-material-design-icons/FormatListNumbered.vue';
 import CodeBracesBox from 'vue-material-design-icons/CodeBlockTags.vue';
 import FormatBlockquote from 'vue-material-design-icons/FormatQuoteOpen.vue';
+import ImageFrame from 'vue-material-design-icons/ImageFrame.vue';
+import Image from '@tiptap/extension-image';
 
 const model = defineModel();
 
@@ -36,6 +39,7 @@ const editor = ref(new Editor({
   extensions: [
     TextStyle.configure({ types: [ListItem.name] }),
     StarterKit,
+    Image
   ],
   content: model.value,
   onUpdate: () => {
@@ -65,6 +69,9 @@ const buttonGroups = [
     'orderedList',
     'codeBlock',
     'blockquote'
+  ],
+  [
+    'image'
   ]
 ];
 
@@ -76,7 +83,8 @@ const icons = {
   bulletList: FormatListBulleted,
   orderedList: FormatListNumbered,
   codeBlock: CodeBracesBox,
-  blockquote: FormatBlockquote
+  blockquote: FormatBlockquote,
+  image: ImageFrame
 };
 
 const labels = {
@@ -93,6 +101,20 @@ const labels = {
   italic: 'Italic',
   strike: 'Strikethrough',
   code: 'Code'
+};
+
+const setters = {
+  paragraph: 'setParagraph',
+  image: 'setImage'
+};
+
+const argHandlers = {
+  image(attachment) {
+    return {
+      src: attachment._urls.full,
+      alt: attachment.name
+    };
+  }
 };
 
 function changeBlockType() {
@@ -124,23 +146,28 @@ function isDisabled(name) {
   return !enactOn(editor.value.can(), name);
 }
 
-function enact(name) {
-  return enactOn(editor.value, name);
+function enact(name, arg) {
+  console.log('enacting:', name, arg);
+  return enactOn(editor.value, name, arg);
 }
 
-function enactOn(context, name) {
-  const { method, args } = parse(name);
+function enactOn(context, name, arg) {
+  const { method, args } = parse(name, arg);
   return context.chain().focus()[method](args).run();
 }
 
-function parse(name) {
+function parse(name, arg = null) {
   const matches = name.match(/^(\w+?)(\d*)$/);
   const tool = matches[1];
   const level = matches[2] && parseInt(matches[2]);
-  const method = (tool === 'paragraph') ? 'setParagraph' : `toggle${capFirst(tool)}`;
-  const args = {};
+  const method = setters[tool] || `toggle${capFirst(tool)}`;
+  const argHandler = arg && argHandlers[name];
+  const args = (argHandler && argHandler(arg)) || {};
   if (level) {
     args.level = level;
+  }
+  if (name === 'image') {
+    console.log('arg was:', arg, 'args are:', args);
   }
   return {
     name,
@@ -162,6 +189,18 @@ function capFirst(s) {
   return s.substring(0, 1).toUpperCase() + s.substring(1);
 }
 
+function getButtonType(button) {
+  if (button === 'image') {
+    return AttachmentButton;
+  } else {
+    return 'button';
+  }
+}
+
+function insertFile(file) {
+
+}
+
 onBeforeUnmount(() => {
   editor.value.destroy();
 });
@@ -180,14 +219,16 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 .controls {
-  button {
+  label, button {
     all: unset;
     outline: revert;
     margin-left: 2px;
     margin-right: 2px;
   }
-  button.is-active {
-    background-color: #def;
+  label, button {
+    .is-active {
+      background-color: #def;
+    }
   }
   .block-type {
     transform: translate(0, -8px);
@@ -293,6 +334,12 @@ onBeforeUnmount(() => {
     border: none;
     border-top: 1px solid var(--gray-2);
     margin: 2rem 0;
+  }
+
+  // Inline image styles
+  img {
+    display: block;
+    max-width: 100%;
   }
 }
 </style>
