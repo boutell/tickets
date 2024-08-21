@@ -28,9 +28,7 @@ const adding = ref('');
 const emit = defineEmits([ 'userChange' ]);
 
 function remaining() {
-  console.log('recomputing remaining');
   const result = props.choices.filter(choice => !model.value.includes(choice.value));
-  console.log('RESULT:', JSON.stringify(result, null, '  '));
   return result;
 }
 
@@ -46,9 +44,7 @@ function remove(value) {
 }
 
 function getLabel(value) {
-  console.log(`Getting label for ${value}`);
   const choice = props.choices.find(choice => choice.value === value);
-  console.log('Choice is:', choice);
   return choice.label;
 }
 

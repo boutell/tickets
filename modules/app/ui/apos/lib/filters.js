@@ -5,7 +5,8 @@ const filters = [
     name: '_organization',
     choices: ref([]),
     label: 'Organization',
-    edit: true
+    edit: true,
+    relationship: true
   },
   {
     name: '_customer',
@@ -24,7 +25,8 @@ const filters = [
       // them to organizations.
       '_organization': '_organizations'
     },
-    edit: true
+    edit: true,
+    relationship: true
   },
   {
     name: '_cc',
@@ -34,7 +36,8 @@ const filters = [
     dependencies: {
       '_organization': 'organizationsOrAgent'
     },
-    edit: true
+    edit: true,
+    relationship: true
   },
   {
     name: '_assignee',
@@ -44,7 +47,8 @@ const filters = [
     qs: {
       role: [ 'admin', 'editor' ]
     },
-    agent: true
+    agent: true,
+    relationship: true
   },
   {
     name: 'status',

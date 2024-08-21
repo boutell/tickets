@@ -4,6 +4,7 @@ import { useRouter, useRoute, RouterLink } from 'vue-router';
 import Editor from './Editor.vue';
 import allFilters from '../lib/filters.js';
 
+const router = useRouter();
 const route = useRoute();
 const creating = ref(!route.params.number);
 const loading = ref(true);
@@ -17,6 +18,7 @@ const filters = allFilters.filter(filter => {
   }
   return true;
 });
+console.log(`* ${filters.length}`);
 const ticket = reactive({});
 const notFound = ref(false);
 const choices = reactive({});
@@ -25,9 +27,7 @@ for (const filter of filters) {
 }
 
 onMounted(async () => {
-  console.log('in onMounted');
   if (creating.value) {
-    console.log('creating because:', route.params.number);
     // Populated with the defaults
     Object.assign(ticket, await apos.http.post(
       '/api/v1/ticket',
@@ -46,7 +46,6 @@ onMounted(async () => {
           busy: true
         }
       ));
-      console.log('ORG:', ticket._organization[0].title);
     } catch (e) {
       if (e.status === 404) {
         notFound.value = true;
@@ -56,11 +55,14 @@ onMounted(async () => {
     }
   }
   for (const filter of filters) {
-    if (!filter.multiple) {
-      ticket[filter.name] = ticket[filter.name]?.[0]?._id;
-    } else {
-      console.log(`** ${filter.name}`);
-      ticket[filter.name] = (ticket[filter.name] || []).map(value => value._id);
+    if (filter.relationship) {
+      if (!filter.multiple) {
+        console.log(`** ${filter.name}`);
+        ticket[filter.name] = ticket[filter.name]?.[0]?._id;
+      } else {
+        console.log(`*** ${filter.name}`);
+        ticket[filter.name] = (ticket[filter.name] || []).map(value => value._id);
+      }
     }
   }
   await manageChoices();
@@ -69,15 +71,12 @@ onMounted(async () => {
 
 async function manageChoices() {
   for (const filter of filters) {
-    console.log('--> ' + filter.name);
     if (!filter.choices) {
-      console.log('not suited');
       continue;
     }
     const field = apos.ticket.schema.find(({ name }) => name === filter.name);
     if (field.choices) {
       choices[filter.name] = field.choices;
-      console.log('hardcoded');
       continue;
     }
     for (const name of Object.keys(filter.dependencies || {})) {
@@ -85,19 +84,16 @@ async function manageChoices() {
     }
     await updateChoices();
     async function updateChoices() {
-      console.log('fetching');
       const qs = {
         ...filter.qs
       };
       for (const [ name, narrowBy ] of Object.entries(filter.dependencies || {})) {
         if (!ticket[name]) {
-          console.log('missing prereq:' + name);
           choices[filter.name] = [];
           return;
         }
         qs[narrowBy] = ticket[name];
       }
-      console.log('Fetching choices for:', filter.name);
       // TODO abstract this filter away to an $or on the server
       // side, for now it's a hack here on the client side
       if (qs.organizationsOrAgent) {
@@ -147,26 +143,33 @@ async function submit() {
     ...ticket
   };
   for (const filter of filters) {
+    if (!filter.relationship) {
+      continue;
+    }
     const value = ticket[filter.name];
+    console.log(`>> ${filter.name}`);
+    console.log(`>>> ${JSON.stringify(value)}`);
     if (!filter.multiple) {
       body[filter.name] = value ? [ { _id: value } ] : [];
     } else {
       body[filter.name] = value.map(value => ({ _id: value }));
     }
+    console.log(`>>>> ${JSON.stringify(body[filter.name])}`);
   }
-  if (route.params.slug) {
-    await apos.http.patch(`/api/v1/ticket/${route.params.slug}`, {
-      body: ticket,
+  let result = ticket._id ?
+    await apos.http.patch(`/api/v1/ticket/${ticket._id}`, {
+      body,
       busy: true
-    });
-  } else {
-    await apos.http.post('/api/v1/ticket', {
-      body: ticket,
+    })
+  : await apos.http.post('/api/v1/ticket', {
+      body,
       busy: true
-    });
-  }
-  // Return to whatever filters we had going on
-  router.go(-1);
+    })
+  ;
+  const number = result._id.replace('ticket', '');
+  router.push({
+    path: `/ticket/${number}`
+  });
 }
 
 function isRequired(filterName) {

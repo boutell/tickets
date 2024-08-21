@@ -178,7 +178,6 @@ onBeforeUnmount(() => {
 }
 .content {
   width: 100%;
-  height: 560px;
 }
 .controls {
   button {
