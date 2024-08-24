@@ -131,12 +131,20 @@ module.exports = {
       }
     }
   },
-  handlers(self) {
+  extendHandlers(self) {
     return {
-      beforeInsert: {
-        async setId(req, doc) {
+      // Extend the existing handler that generates ids
+      // so that we can go first. That handler is already
+      // designed to back off if it sees an aposDocId and _id
+      '@apostrophecms/doc-type:beforeInsert': {
+        async testPermissionsAndAddIdAndCreatedAt(_super, req, doc, options) {
+          if (doc.type !== self.__meta.name) {
+            return _super(req, doc, options);
+          }
+          console.log('here I am');
           if (doc._id) {
             // Import, for instance
+            console.log('too late');
             return;
           }
           // MongoDB doesn't provide consecutive ids, but
@@ -164,11 +172,17 @@ module.exports = {
               }
             );
           });
-        },
-        setSlug(req, doc) {
+          // Set the slug too, save an async tick by
+          // using the same handler
           self.setSlug(req, doc);
+          console.log('calling super');
+          return _super(req, doc, options);
         }
-      },
+      }
+    }
+  },
+  handlers(self) {
+    return {
       beforeUpdate: {
         setSlug(req, doc) {
           self.setSlug(req, doc);

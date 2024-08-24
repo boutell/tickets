@@ -30,8 +30,8 @@ import FormatListBulleted from 'vue-material-design-icons/FormatListBulleted.vue
 import FormatListNumbered from 'vue-material-design-icons/FormatListNumbered.vue';
 import CodeBracesBox from 'vue-material-design-icons/CodeBlockTags.vue';
 import FormatBlockquote from 'vue-material-design-icons/FormatQuoteOpen.vue';
-import ImageFrame from 'vue-material-design-icons/ImageFrame.vue';
-import Image from '@tiptap/extension-image';
+import AttachmentIcon from 'vue-material-design-icons/Attachment.vue';
+import Attachment from '../lib/tiptap-extensions/Attachment.js';
 
 const model = defineModel();
 
@@ -39,7 +39,7 @@ const editor = ref(new Editor({
   extensions: [
     TextStyle.configure({ types: [ListItem.name] }),
     StarterKit,
-    Image
+    Attachment()
   ],
   content: model.value,
   onUpdate: () => {
@@ -71,7 +71,7 @@ const buttonGroups = [
     'blockquote'
   ],
   [
-    'image'
+    'attachment'
   ]
 ];
 
@@ -84,7 +84,7 @@ const icons = {
   orderedList: FormatListNumbered,
   codeBlock: CodeBracesBox,
   blockquote: FormatBlockquote,
-  image: ImageFrame
+  attachment: AttachmentIcon
 };
 
 const labels = {
@@ -105,14 +105,13 @@ const labels = {
 
 const setters = {
   paragraph: 'setParagraph',
-  image: 'setImage'
+  attachment: 'setAttachment'
 };
 
 const argHandlers = {
-  image(attachment) {
+  attachment(attachment) {
     return {
-      src: attachment._urls.full,
-      alt: attachment.name
+      url: attachment?._urls?.max || attachment._url
     };
   }
 };
@@ -147,7 +146,6 @@ function isDisabled(name) {
 }
 
 function enact(name, arg) {
-  console.log('enacting:', name, arg);
   return enactOn(editor.value, name, arg);
 }
 
@@ -165,9 +163,6 @@ function parse(name, arg = null) {
   const args = (argHandler && argHandler(arg)) || {};
   if (level) {
     args.level = level;
-  }
-  if (name === 'image') {
-    console.log('arg was:', arg, 'args are:', args);
   }
   return {
     name,
@@ -190,7 +185,7 @@ function capFirst(s) {
 }
 
 function getButtonType(button) {
-  if (button === 'image') {
+  if (button === 'attachment') {
     return AttachmentButton;
   } else {
     return 'button';
@@ -334,6 +329,11 @@ onBeforeUnmount(() => {
     border: none;
     border-top: 1px solid var(--gray-2);
     margin: 2rem 0;
+  }
+
+  figure.ProseMirror-selectednode {
+    opacity: 50%;
+    filter: hue-rotate(45deg);
   }
 
   // Inline image styles
