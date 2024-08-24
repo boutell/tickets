@@ -7,19 +7,19 @@ const notFound = ref(false);
 const route = useRoute();
 
 onMounted(async () => {
-  try {
-    ticket.value = await apos.http.get(
-      `/api/v1/ticket/ticket${route.params.number}`,
-      {
-        busy: true
-      }
-    );
-  } catch (e) {
-    if (e.status === 404) {
-      notFound.value = true;
-    } else {
-      throw e;
+  const value = (await apos.http.get(
+    '/api/v1/ticket',
+    {
+      qs: {
+        ticketNumber: route.params.number
+      },
+      busy: true
     }
+  )).results[0];
+  if (!value) {
+    notFound.value = true;
+  } else {
+    ticket.value = value;
   }
 });
 

@@ -7,6 +7,10 @@ module.exports = {
   extend: '@apostrophecms/piece-type',
   fields: {
     add: {
+      ticketNumber: {
+        type: 'integer',
+        readOnly: true
+      },
       subtype: {
         type: 'select',
         required: true,
@@ -131,26 +135,26 @@ module.exports = {
       }
     }
   },
-  extendHandlers(self) {
+  init(self) {
+    self.apos.doc.db.createIndex({
+      ticketNumber: 1
+    }, {
+      unique: true,
+      sparse: true
+    });
+  },
+  handlers(self) {
     return {
-      // Extend the existing handler that generates ids
-      // so that we can go first. That handler is already
-      // designed to back off if it sees an aposDocId and _id
-      '@apostrophecms/doc-type:beforeInsert': {
-        async testPermissionsAndAddIdAndCreatedAt(_super, req, doc, options) {
-          if (doc.type !== self.__meta.name) {
-            return _super(req, doc, options);
-          }
-          console.log('here I am');
-          if (doc._id) {
+      beforeInsert: {
+        async setNumber(req, doc) {
+          if (doc.ticketNumber) {
             // Import, for instance
-            console.log('too late');
             return;
           }
           // MongoDB doesn't provide consecutive ids, but
           // they are widely preferred for tickets.
           // Use a lock to prevent race conditions
-          await self.apos.lock.withLock('ticket-id', async () => {
+          await self.apos.lock.withLock('ticket-number', async () => {
             // Use the published global doc of the default locale
             // as a single shared source of truth for the next
             // ticket id
@@ -158,31 +162,23 @@ module.exports = {
               type: '@apostrophecms/global',
               aposLocale: `${self.apos.i18n.defaultLocale}:published`
             };
-            const lastId = (await self.apos.doc.db.findOne(criteria))?.lastTicketId || 0;
-            const nextId = lastId++;
-            doc._id = `ticket${nextId}`;
-            // Tickets are not localized
-            doc.aposDocId = doc._id;
+            const lastNumber = (await self.apos.doc.db.findOne(criteria))?.lastTicketNumber || 0;
+            const nextNumber = lastNumber + 1;
+            doc.ticketNumber = nextNumber;
             await self.apos.doc.db.updateOne(
               criteria,
               {
                 $set: {
-                  lastTicketId: nextId
+                  lastTicketNumber: nextNumber
                 }
               }
             );
           });
-          // Set the slug too, save an async tick by
-          // using the same handler
+        },
+        setSlug(req, doc) {
           self.setSlug(req, doc);
-          console.log('calling super');
-          return _super(req, doc, options);
         }
-      }
-    }
-  },
-  handlers(self) {
-    return {
+      },
       beforeUpdate: {
         setSlug(req, doc) {
           self.setSlug(req, doc);

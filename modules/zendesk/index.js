@@ -112,46 +112,48 @@ module.exports = {
         async task(argv) {
           const data = `${__dirname}/../../data/zendesk`;
           const req = self.apos.task.getReq();
+          let lastTicketNumber = 0;
           if (!fs.existsSync(data)) {
             throw new Error('Run the zendesk:download task first.');
           }
 
-          const orgJsonFiles = globSync(`${data}/organizations/*.json`);
-          for (const orgJsonFile of orgJsonFiles) {
-            const info = JSON.parse(fs.readFileSync(orgJsonFile));
-            const org = self.apos.organization.newInstance();
-            org.title = info.name;
-            org.notes = info.notes;
-            org.legacy = info;
-            org.domains = info.domain_names.map(name => ({ name }));
-            setIds(org, 'org', info);
-            await self.apos.organization.insert(req, org);
-            await fixTimes(org, info);
-          }
+          // const orgJsonFiles = globSync(`${data}/organizations/*.json`);
+          // for (const orgJsonFile of orgJsonFiles) {
+          //   const info = JSON.parse(fs.readFileSync(orgJsonFile));
+          //   const org = self.apos.organization.newInstance();
+          //   org.title = info.name;
+          //   org.notes = info.notes;
+          //   org.legacy = info;
+          //   org.domains = info.domain_names.map(name => ({ name }));
+          //   setIds(org, 'org', info);
+          //   await self.apos.organization.insert(req, org);
+          //   await fixTimes(org, info);
+          // }
 
-          const userJsonFiles = globSync(`${data}/users/*.json`);
-          for (const userJsonFile of userJsonFiles) {
-            const info = JSON.parse(fs.readFileSync(userJsonFile));
-            const user = self.apos.user.newInstance();
-            user.title = info.name;
-            user.email = info.email;
-            user.username = info.email;
-            user._organizations = [
-              {
-                _id: `org${info.organization_id}`
-              }
-            ];
-            user.role = {
-              'admin': 'admin',
-              'agent': 'editor',
-              'end-user': 'guest'
-            }[info.role];
-            user.notes = info.notes;
-            user.legacy = info;
-            setIds(user, 'user', info);
-            await self.apos.user.insert(req, user);
-            await fixTimes(user, info);
-          }
+          // const userJsonFiles = globSync(`${data}/users/*.json`);
+          // for (const userJsonFile of userJsonFiles) {
+          //   const info = JSON.parse(fs.readFileSync(userJsonFile));
+          //   const user = self.apos.user.newInstance();
+          //   user.title = info.name;
+          //   user.email = info.email;
+          //   user.username = info.email;
+          //   user._organizations = [
+          //     {
+          //       _id: `org${info.organization_id}`
+          //     }
+          //   ];
+          //   user.role = {
+          //     'admin': 'admin',
+          //     'agent': 'editor',
+          //     'end-user': 'guest'
+          //   }[info.role];
+          //   user.notes = info.notes;
+          //   user.legacy = info;
+          //   setIds(user, 'user', info);
+          //   console.log(`Inserting: ${user.title}`);
+          //   await self.apos.user.insert(req, user);
+          //   await fixTimes(user, info);
+          // }
 
           const ticketJsonFiles = globSync(`${data}/tickets/*/ticket.json`);
           for (const ticketJsonFile of ticketJsonFiles) {
@@ -180,47 +182,62 @@ module.exports = {
             ticket.legacy = info;
             ticket.createdAt = new Date(info.created_at);
             ticket.updatedAt = new Date(info.updated_at);
-            setIds(ticket, 'ticket', info);
+            ticket.ticketNumber = info.id;
             const legacyTicketId = info.id;
+            lastTicketNumber = Math.max(lastTicketNumber, ticket.ticketNumber);
+            setIds(ticket, 'ticket', info);
             console.log(`inserting ${ticket._id}`);
             ticket = await self.apos.ticket.insert(req, ticket);
             await fixTimes(ticket, info);
 
-            const commentJsonFiles = globSync(`${data}/tickets/${info.id}/comments/*.json`);
-            for (commentJsonFile of commentJsonFiles) {
-              const info = JSON.parse(fs.readFileSync(commentJsonFile));
-              const comment = self.apos.comment.newInstance();
-              comment.text = info.html_body;
-              comment._ticket = [ ticket ];
-              comment._author = [
-                {
-                  _id: `user${info.author_id}`
-                }
-              ];
-              comment.legacy = info;
-              comment.createdAt = new Date(info.created_at);
-              comment.updatedAt = new Date(info.updated_at);
-              setIds(comment, 'comment', info);
+            // const commentJsonFiles = globSync(`${data}/tickets/${info.id}/comments/*.json`);
+            // for (commentJsonFile of commentJsonFiles) {
+            //   const info = JSON.parse(fs.readFileSync(commentJsonFile));
+            //   const comment = self.apos.comment.newInstance();
+            //   comment.text = info.html_body;
+            //   comment._ticket = [ ticket ];
+            //   comment._author = [
+            //     {
+            //       _id: `user${info.author_id}`
+            //     }
+            //   ];
+            //   comment.legacy = info;
+            //   comment.createdAt = new Date(info.created_at);
+            //   comment.updatedAt = new Date(info.updated_at);
+            //   setIds(comment, 'comment', info);
 
-              const attachmentFiles = globSync(`${data}/tickets/${legacyTicketId}/comments/${info.id}/attachments/*`);
-              const attachments = [];
-              for (const attachmentFile of attachmentFiles) {
-                const attachment = await self.apos.attachment.insert(req, {
-                  path: attachmentFile,
-                  name: attachmentFile
-                });
-                attachments.push(attachment);
-              }
-              comment.attachments = attachments.map(attachment => ({
-                attachment
-              }));
+            //   const attachmentFiles = globSync(`${data}/tickets/${legacyTicketId}/comments/${info.id}/attachments/*`);
+            //   const attachments = [];
+            //   for (const attachmentFile of attachmentFiles) {
+            //     const attachment = await self.apos.attachment.insert(req, {
+            //       path: attachmentFile,
+            //       name: attachmentFile
+            //     });
+            //     attachments.push(attachment);
+            //   }
+            //   comment.attachments = attachments.map(attachment => ({
+            //     attachment
+            //   }));
 
-              console.log(`inserting ${comment._id}`);
-              console.log(JSON.stringify(comment, null, '  '));
-              await self.apos.comment.insert(req, comment);
-              await fixTimes(comment, info);
-            }
+            //   console.log(`inserting ${comment._id}`);
+            //   console.log(JSON.stringify(comment, null, '  '));
+            //   await self.apos.comment.insert(req, comment);
+            //   await fixTimes(comment, info);
+            // }
           }
+
+          const criteria = {
+            type: '@apostrophecms/global',
+            aposLocale: `${self.apos.i18n.defaultLocale}:published`
+          };
+          await self.apos.doc.db.updateOne(
+            criteria,
+            {
+              $set: {
+                lastTicketNumber
+              }
+            }
+          );
 
           function setIds(piece, prefix, info) {
             piece._id = `${prefix}${info.id}`;
