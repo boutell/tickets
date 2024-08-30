@@ -113,7 +113,8 @@ module.exports = {
         }
       },
       _comments: {
-        type: 'relationshipReverse'
+        type: 'relationshipReverse',
+        withRelationships: [ '_author' ]
       }
     },
     group: {

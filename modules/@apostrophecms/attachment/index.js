@@ -11,7 +11,10 @@ module.exports = {
           'svg',
           'webp'
         ],
-        extensionMaps: { jpeg: 'jpg' },
+        extensionMaps: {
+          jpeg: 'jpg',
+          jfif: 'jpg'
+        },
         // uploadfs should treat this as an image and create scaled versions
         image: true
       },

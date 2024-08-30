@@ -22,11 +22,6 @@ onMounted(async () => {
     ticket.value = value;
   }
 });
-
-function render(markdown) {
-  return marked.parse(markdown);
-}
-
 </script>
 <template>
   <nav>
@@ -37,8 +32,16 @@ function render(markdown) {
   </nav>
   <article v-if="ticket">
     <h2>{{ ticket.title }}</h2>
-    <div v-html="render(ticket.description)"
+    <div v-html="ticket.description"
     </div>
+    <section class="comments">
+      <h2>Comments</h2>
+    </section>
+    <article v-for="comment in ticket._comments">
+      <h4>{{ comment._author?.[0]?.title || 'unknown' }}</h4>
+      <div v-html="comment.text">
+      </div>
+    </article>
   </article>
   <article v-else-if="notFound">
     <h2>Not Found</h2>
