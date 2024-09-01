@@ -225,9 +225,7 @@ onBeforeUnmount(() => {
       background-color: #def;
     }
   }
-  .block-type {
-    transform: translate(0, -8px);
-  }
+  margin-bottom: 16px;
 }
 
 .control-group {
@@ -236,6 +234,7 @@ onBeforeUnmount(() => {
 
 /* Basic editor styles */
 :deep(.tiptap) {
+  padding: 4px;
   width: 560px;
   height: 60vh;
   overflow: auto;
@@ -340,6 +339,13 @@ onBeforeUnmount(() => {
   img {
     display: block;
     max-width: 100%;
+  }
+
+  figure a {
+    display: block;
+    margin: 2px 0;
+    border: 1px solid black;
+    padding: 2px;
   }
 }
 </style>

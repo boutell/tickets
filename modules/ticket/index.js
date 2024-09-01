@@ -1,3 +1,6 @@
+const sanitizeHtml = require('sanitize-html');
+const cheerio = require('cheerio');
+
 module.exports = {
   options: {
     localized: false,
@@ -101,7 +104,10 @@ module.exports = {
       },
       attachments: {
         type: 'array',
-        inline: true,
+        // Read-only because it is actually managed
+        // by the rich text editor (inclusion of
+        // a download attribute in a link in description)
+        readOnly: true,
         fields: {
           add: {
             file: {
@@ -199,6 +205,11 @@ module.exports = {
           doc.organizationIdWas = doc._organization[0]._id;
         }
       },
+      beforeSave: {
+        async normalizeDescriptionAndAttachments(req, doc) {
+          await self.normalizeTextAndAttachments(req, doc, 'description');
+        }
+      },
       afterArchive: {
         async archiveComments(req, doc) {
           const comments = await self.apos.comment.findForEditing(req, {
@@ -232,6 +243,35 @@ module.exports = {
     return {
       setSlug(req, doc) {
         doc.slug = self.options.slugPrefix + self.apos.util.slugify(doc.title);
+      },
+      async normalizeTextAndAttachments(req, doc, field) {
+        doc[field] = sanitizeHtml(doc[field], {
+          allowedTags: sanitizeHtml.defaults.allowedTags.concat([ 'figure', 'img' ]),
+          allowedAttributes: {
+            ...sanitizeHtml.defaults.allowedAttributes,
+            a: [ 'href', 'download' ]
+          }
+        });
+        const $ = cheerio.load(doc[field]);
+        const $links = $('a[download]');
+        const ids = [];
+        $links.each((i, e) => {
+          const $link = $(e);
+          console.log($link);
+          console.log(`>${$link.prop('outerHTML')}`);
+          const href = $link.attr('href');
+          const matches = href.match(/^\/uploads\/attachments\/(\w+)[^?#]+$/);
+          if (!matches) {
+            $link.remove();
+            return;
+          }
+          ids.push(matches[1]);
+        });
+        const attachments = await self.apos.attachment.db.find({
+          _id: { $in: ids }
+        }).toArray();
+        doc.attachments = attachments;
+        doc[field] = $.html();
       }
     };
   }

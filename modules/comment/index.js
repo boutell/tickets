@@ -25,6 +25,9 @@ module.exports = {
         required: true
       },
       attachments: {
+        // See normalizeTextAndAttachments for why
+        // this is a read-only field
+        readOnly: true,
         type: 'array',
         inline: true,
         fields: {
@@ -82,6 +85,11 @@ module.exports = {
         },
         setOrganization(req, doc) {
           self.setOrganization(req, doc);
+        }
+      },
+      beforeSave: {
+        async normalizeTextAndAttachments(req, doc) {
+          await self.apos.ticket.normalizeTextAndAttachments(req, doc, 'text');
         }
       }
     }

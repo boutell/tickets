@@ -109,6 +109,5 @@ function parseAttachmentUrl(url) {
     name: matches[2],
     extension: matches[3]
   };
-  console.log('===>', result);
   return result;
 }

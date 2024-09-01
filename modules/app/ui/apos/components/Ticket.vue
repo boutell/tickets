@@ -1,7 +1,8 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue';
-import { useRouter, useRoute, RouterLink } from 'vue-router';
-import { marked } from 'marked';
+import { ref, onMounted } from 'vue';
+import { useRoute, RouterLink } from 'vue-router';
+import Pencil from 'vue-material-design-icons/Pencil.vue';
+
 const ticket = ref(null);
 const notFound = ref(false);
 const route = useRoute();
@@ -26,9 +27,16 @@ onMounted(async () => {
 <template>
   <nav>
     <RouterLink to="/">Home</RouterLink>
-      &gt;
-    <RouterLink v-if="ticket" :to="`/ticket/${route.params.number }`">{{ ticket.title }}</RouterLink>
-    <RouterLink v-if="ticket?._edit" :to="`/ticket/${route.params.number }/edit`">Edit</RouterLink>
+    &nbsp;
+    :
+    &nbsp;
+    <span v-if="ticket">
+      {{ ticket.title }}
+    </span>
+    &nbsp;
+    <RouterLink v-if="ticket?._edit" :to="`/ticket/${route.params.number }/edit`">
+      <Pencil title="Edit" />
+    </RouterLink>
   </nav>
   <article v-if="ticket">
     <h2>{{ ticket.title }}</h2>

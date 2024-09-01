@@ -1,6 +1,7 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue';
 import { useRouter, useRoute, RouterLink } from 'vue-router';
+import Pencil from 'vue-material-design-icons/Pencil.vue';
 import Editor from './Editor.vue';
 import allFilters from '../lib/filters.js';
 
@@ -187,13 +188,27 @@ function getDisabled(name) {
   return choices[name].length === 0;
 }
 
+function cancel() {
+  const viewUrl = `/ticket/${ticket.ticketNumber}`;
+  if (history.state.back === viewUrl) {
+    history.go(-1);
+  } else {
+    history.push(viewUrl);
+  }
+}
+
 </script>
 <template>
   <nav>
     <RouterLink to="/">Home</RouterLink>
-      &gt;
-    <RouterLink :to="`/ticket/${route.params.number }`">{{ ticket.title }}</RouterLink>
-    <RouterLink :to="`/ticket/${route.params.number }/edit`">Edit</RouterLink>
+    &nbsp;
+    :
+    &nbsp;
+    <span v-if="ticket">
+      {{ ticket.title }}
+    </span>
+    &nbsp;
+    <Pencil title="Edit" />
   </nav>
   <section v-if="notFound">
     Not Found
@@ -219,8 +234,10 @@ function getDisabled(name) {
      usual focus passing via blatant JS cheating -->
      <div class="editor-wrapper">
       <span>Description</span>
-      <Editor v-model="ticket.description" />
+      <Editor class="editor" v-model="ticket.description" />
     </div>
+    <button @click="cancel">Cancel</button>
+    &nbsp;
     <button type="submit">Submit</button>
   </form>
 </template>
