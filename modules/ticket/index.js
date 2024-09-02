@@ -267,6 +267,14 @@ module.exports = {
           }
           ids.push(matches[1]);
         });
+        // Why do you do this Zendesk? Why?
+        const $nestedCode = $('pre>code');
+        $nestedCode.each((i, e) => {
+          const $code = $(e);
+          const text = $code.text();
+          const $pre = $nestedCode.parent();
+          $pre.text(text);
+        });
         const attachments = await self.apos.attachment.db.find({
           _id: { $in: ids }
         }).toArray();

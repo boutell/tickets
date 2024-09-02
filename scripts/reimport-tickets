@@ -1,0 +1,6 @@
+#!/bin/bash
+
+mongosh tickets ./scripts/reimport-tickets-mongosh.js &&
+rm -rf public/uploads/attachments &&
+echo "Purge complete." &&
+node app zendesk:import --skip-orgs --skip-users

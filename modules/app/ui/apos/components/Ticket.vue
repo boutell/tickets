@@ -2,6 +2,8 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, RouterLink } from 'vue-router';
 import Pencil from 'vue-material-design-icons/Pencil.vue';
+import { editFilters as filters } from '../lib/filters.js';
+import Age from './Age.vue';
 
 const ticket = ref(null);
 const notFound = ref(false);
@@ -23,15 +25,21 @@ onMounted(async () => {
     ticket.value = value;
   }
 });
+
+function getLabel(name) {
+  const value = ticket.value[name];
+  const choices = apos.ticket.schema.find(field => field.name === name).choices;
+  return choices.find(choice => choice.value === value)?.label || '';
+}
 </script>
 <template>
-  <nav>
-    <RouterLink to="/">Home</RouterLink>
+  <nav class="primary-nav">
+    <RouterLink to="/">Tickets</RouterLink>
     &nbsp;
-    :
+    »
     &nbsp;
     <span v-if="ticket">
-      {{ ticket.title }}
+      #{{ ticket.ticketNumber }} {{ ticket.title }}
     </span>
     &nbsp;
     <RouterLink v-if="ticket?._edit" :to="`/ticket/${route.params.number }/edit`">
@@ -39,15 +47,36 @@ onMounted(async () => {
     </RouterLink>
   </nav>
   <article v-if="ticket">
-    <h2>{{ ticket.title }}</h2>
-    <div v-html="ticket.description"
+    <section class="ticket">
+      <div class="field">
+        <span class="label">Title</span>
+        <span class="value">{{ ticket.title }}</span>
+      </div>
+      <div class="field">
+        <span class="label">Age</span>
+        <span class="value"><Age :at="ticket.createdAt" /></span>
+      </div>
+      <div class="field" v-for="filter in filters">
+        <span class="label">{{ filter.label }}</span>
+        <ul class="value" v-if="Array.isArray(ticket[filter.name])">
+          <li v-for="value of ticket[filter.name]">
+            {{ value.title }}
+          </li>
+        </ul>
+        <span class="value" v-else>{{ getLabel(filter.name) }}</span>
+      </div>
+    </section>
+    <div class="field">
+      <span class="label">Description</span>
+      <div class="user-content" v-html="ticket.description"></div>
     </div>
     <section class="comments">
       <h2>Comments</h2>
     </section>
     <article v-for="comment in ticket._comments">
       <h4>{{ comment._author?.[0]?.title || 'unknown' }}</h4>
-      <div v-html="comment.text">
+      <h5><Age :at="comment.createdAt" /> ago {{ comment._id }}</h5>
+      <div class="user-content" v-html="comment.text">
       </div>
     </article>
   </article>
@@ -59,3 +88,30 @@ onMounted(async () => {
     <p>Loading...</p>
   </article>
 </template>
+<style lang="scss" scoped>
+@import '../lib/styles/user-content.scss';
+
+nav {
+  margin-bottom: 2em;
+}
+
+:deep(.user-content) {
+  @include user-content;
+}
+
+// matches label in EditTicket.vue
+.field {
+  display: flex;
+  margin-bottom: 1em;
+  span.label {
+    width: 240px;
+  }
+}
+// matches SelectMultiple
+ul {
+  margin-block-start: 0;
+  margin-block-end: 0;
+  padding-inline-start: 0;
+  list-style: none;
+}
+</style>

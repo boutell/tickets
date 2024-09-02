@@ -4,6 +4,7 @@ body,
 .bp-wrapper {
   display: flex;
   flex-direction: column;
+  margin-bottom: 8px;
 }
 
 [data-apos-refreshable],
@@ -37,7 +38,7 @@ main,
 }
 
 .bp-footer {
-  padding: 40px 0; 
+  padding: 40px 0;
 }
 
 .bp-footer__links {
@@ -67,7 +68,21 @@ main,
 }
 
 .bp-content {
-  max-width: 600px;
+  max-width: 800px;
   margin-left: auto;
   margin-right: auto;
+}
+
+.primary-nav {
+  margin-top: 16px;
+  font-size: 125%;
+}
+
+#bottom-spy {
+  position: fixed;
+  bottom: 50vh;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  z-index: -1;
 }

@@ -127,43 +127,47 @@ module.exports = {
             throw new Error('Run the zendesk:download task first.');
           }
 
-          // const orgJsonFiles = globSync(`${data}/organizations/*.json`);
-          // for (const orgJsonFile of orgJsonFiles) {
-          //   const info = JSON.parse(fs.readFileSync(orgJsonFile));
-          //   const org = self.apos.organization.newInstance();
-          //   org.title = info.name;
-          //   org.notes = info.notes;
-          //   org.legacy = info;
-          //   org.domains = info.domain_names.map(name => ({ name }));
-          //   setIds(org, 'org', info);
-          //   await self.apos.organization.insert(req, org);
-          //   await fixTimes(org, info);
-          // }
+          if (!argv['skip-orgs']) {
+            const orgJsonFiles = globSync(`${data}/organizations/*.json`);
+            for (const orgJsonFile of orgJsonFiles) {
+              const info = JSON.parse(fs.readFileSync(orgJsonFile));
+              const org = self.apos.organization.newInstance();
+              org.title = info.name;
+              org.notes = info.notes;
+              org.legacy = info;
+              org.domains = info.domain_names.map(name => ({ name }));
+              setIds(org, 'org', info);
+              await self.apos.organization.insert(req, org);
+              await fixTimes(org, info);
+            }
+          }
 
-          // const userJsonFiles = globSync(`${data}/users/*.json`);
-          // for (const userJsonFile of userJsonFiles) {
-          //   const info = JSON.parse(fs.readFileSync(userJsonFile));
-          //   const user = self.apos.user.newInstance();
-          //   user.title = info.name;
-          //   user.email = info.email;
-          //   user.username = info.email;
-          //   user._organizations = [
-          //     {
-          //       _id: `org${info.organization_id}`
-          //     }
-          //   ];
-          //   user.role = {
-          //     'admin': 'admin',
-          //     'agent': 'editor',
-          //     'end-user': 'guest'
-          //   }[info.role];
-          //   user.notes = info.notes;
-          //   user.legacy = info;
-          //   setIds(user, 'user', info);
-          //   console.log(`Inserting: ${user.title}`);
-          //   await self.apos.user.insert(req, user);
-          //   await fixTimes(user, info);
-          // }
+          if (!argv['skip-users']) {
+            const userJsonFiles = globSync(`${data}/users/*.json`);
+            for (const userJsonFile of userJsonFiles) {
+              const info = JSON.parse(fs.readFileSync(userJsonFile));
+              const user = self.apos.user.newInstance();
+              user.title = info.name;
+              user.email = info.email;
+              user.username = info.email;
+              user._organizations = [
+                {
+                  _id: `org${info.organization_id}`
+                }
+              ];
+              user.role = {
+                'admin': 'admin',
+                'agent': 'editor',
+                'end-user': 'guest'
+              }[info.role];
+              user.notes = info.notes;
+              user.legacy = info;
+              setIds(user, 'user', info);
+              console.log(`Inserting: ${user.title}`);
+              await self.apos.user.insert(req, user);
+              await fixTimes(user, info);
+            }
+          }
 
           const ticketJsonFiles = globSync(`${data}/tickets/*/ticket.json`);
           for (const ticketJsonFile of ticketJsonFiles) {

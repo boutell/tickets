@@ -1,24 +1,61 @@
+<template>
+  <nav class="primary-nav">
+    <RouterLink to="/">Tickets</RouterLink>
+    &nbsp;
+    »
+    &nbsp;
+    <span v-if="ticket">
+      <span v-if="ticket.ticketNumber">
+        #{{ ticket.ticketNumber }} {{ ticket.title }}
+        &nbsp;
+        <Pencil title="Edit" />
+      </span>
+      <span v-else>New Ticket</span>
+    </span>
+  </nav>
+  <section v-if="notFound">
+    Not Found
+  </section>
+  <section v-else-if="loading">
+    Loading...
+  </section>
+  <form v-else @submit.prevent="submit">
+    <label>
+      <span>Title</span>
+      <input required v-model="ticket.title" />
+    </label>
+    <section>
+      <label v-for="filter in filters">
+        <span>{{ filter.label }}</span>
+        <SelectMultiple v-if="filter.multiple" :disabled="getDisabled(filter.name)" v-model="ticket[filter.name]" :choices="choices[filter.name]" />
+        <Select v-else :empty="true" :disabled="getDisabled(filter.name)" :required="isRequired(filter.name)" v-model="ticket[filter.name]" :choices="choices[filter.name]" />
+      </label>
+    </section>
+    <!-- Wrapping contenteditable in a label
+     does not work, by design. TODO: click handler
+     on the substitute label here to emulate the
+     usual focus passing via blatant JS cheating -->
+     <div class="editor-wrapper">
+      <span>Description</span>
+      <Editor class="editor" v-model="ticket.description" />
+    </div>
+    <button @click="cancel">Cancel</button>
+    &nbsp;
+    <button type="submit">Submit</button>
+  </form>
+</template>
+
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue';
 import { useRouter, useRoute, RouterLink } from 'vue-router';
 import Pencil from 'vue-material-design-icons/Pencil.vue';
 import Editor from './Editor.vue';
-import allFilters from '../lib/filters.js';
+import { editFilters as filters } from '../lib/filters.js';
 
 const router = useRouter();
 const route = useRoute();
 const creating = ref(!route.params.number);
 const loading = ref(true);
-const agent = apos.login.user.role !== 'guest';
-const filters = allFilters.filter(filter => {
-  if (!filter.edit) {
-    return false;
-  }
-  if (filter.agent && !agent) {
-    return false;
-  }
-  return true;
-});
 console.log(`* ${filters.length}`);
 const ticket = reactive({});
 const notFound = ref(false);
@@ -198,49 +235,6 @@ function cancel() {
 }
 
 </script>
-<template>
-  <nav>
-    <RouterLink to="/">Home</RouterLink>
-    &nbsp;
-    :
-    &nbsp;
-    <span v-if="ticket">
-      {{ ticket.title }}
-    </span>
-    &nbsp;
-    <Pencil title="Edit" />
-  </nav>
-  <section v-if="notFound">
-    Not Found
-  </section>
-  <section v-else-if="loading">
-    Loading...
-  </section>
-  <form v-else @submit.prevent="submit">
-    <label>
-      <span>Title</span>
-      <input required v-model="ticket.title" />
-    </label>
-    <section>
-      <label v-for="filter in filters">
-        <span>{{ filter.label }}</span>
-        <SelectMultiple v-if="filter.multiple" :disabled="getDisabled(filter.name)" v-model="ticket[filter.name]" :choices="choices[filter.name]" />
-        <Select v-else :empty="true" :disabled="getDisabled(filter.name)" :required="isRequired(filter.name)" v-model="ticket[filter.name]" :choices="choices[filter.name]" />
-      </label>
-    </section>
-    <!-- Wrapping contenteditable in a label
-     does not work, by design. TODO: click handler
-     on the substitute label here to emulate the
-     usual focus passing via blatant JS cheating -->
-     <div class="editor-wrapper">
-      <span>Description</span>
-      <Editor class="editor" v-model="ticket.description" />
-    </div>
-    <button @click="cancel">Cancel</button>
-    &nbsp;
-    <button type="submit">Submit</button>
-  </form>
-</template>
 
 <style scoped>
   nav {

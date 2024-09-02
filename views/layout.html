@@ -11,13 +11,6 @@
 
 {% block beforeMain %}
 <div class="bp-wrapper">
-  <header class="bp-header">
-    <img class="bp-header__logo" src="/images/logo.png" alt="ApostropheCMS logo">
-    <nav class="bp-nav"></nav>
-    {% if not data.user %}
-      <a class="bp-button bp-header__login" href="/login">Login</a>
-    {% endif %}
-  </header>
   <main class="bp-main">
 {% endblock %}
 
@@ -31,14 +24,7 @@
 
 {% block afterMain %}
   </main>
-  <footer class="bp-footer">
-    <h3>Essential Links</h3>
-    <ul class="bp-footer__links">
-      <li><a href="https://apostrophecms.com/" target="_blank">About ApostropheCMS</a></li>
-      <li><a href="https://chat.apostrophecms.com/" target="_blank">Discord</a></li>
-      <li><a href="https://twitter.com/apostrophecms" target="_blank">Twitter</a></li>
-      <li><a href="https://github.com/apostrophecms/apostrophe/discussions" target="_blank">GitHub Discussions</a></li>
-    </ul>
-  </footer>
+  {# Used to observe whether we are close to the bottom #}
+  <div id="spy"></div>
 </div>{# Close .bp-wrapper #}
 {% endblock %}

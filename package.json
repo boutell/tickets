@@ -8,7 +8,8 @@
     "dev": "nodemon",
     "build": "NODE_ENV=production node app @apostrophecms/asset:build",
     "serve": "NODE_ENV=production node app",
-    "release": "npm install && npm run build && node app @apostrophecms/migration:migrate"
+    "release": "npm install && npm run build && node app @apostrophecms/migration:migrate",
+    "reimport-tickets": "./scripts/reimport-tickets"
   },
   "nodemonConfig": {
     "delay": 1000,
@@ -45,6 +46,7 @@
     "@tiptap/starter-kit": "^2.6.4",
     "apostrophe": "^4.0.0",
     "cheerio": "^1.0.0",
+    "dayjs": "^1.11.13",
     "glob": "^11.0.0",
     "marked": "^14.0.0",
     "normalize.css": "^8.0.1",
