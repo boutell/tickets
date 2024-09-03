@@ -57,10 +57,9 @@ const filters = [
     label: 'Status'
   },
   {
-    name: 'page'
-  },
-  {
-    name: 'q'
+    name: 'autocomplete',
+    label: 'Search',
+    type: 'autocomplete'
   }
 ];
 

@@ -15,6 +15,7 @@ const tickets = ref([]);
 const loading = ref(true);
 let bottom = false;
 let spyIsVisible = false;
+let queryTimeout = null;
 
 // 0 = "haven't tried to load page one yet, so
 // don't start the infinite scroll attempts yet"
@@ -45,21 +46,36 @@ function updateRouteQuery() {
       query[name] = current.value;
     }
   }
-  router.push({
+  // Filter changes do not make a history entry,
+  // but they are bookmarkable URLs
+  router.replace({
     path: '/',
     query
   });
 }
 
+function clearRouteQuery() {
+  router.replace({
+    path: '/'
+  });
+}
+
 watch(route, () => {
-  page.value = 1;
-  updateData();
+  clearTimeout(queryTimeout);
+  queryTimeout = setTimeout(() => {
+    queryTimeout = null;
+    page.value = 1;
+    for (const filter of filters) {
+      filter.current.value = route.query[filter.name] || '';
+    }
+    updateData();
+  }, 250);
 });
 
 async function updateData() {
   loading.value = true;
   const allChoices = [];
-  const qs = (page.value > 1) ? {
+  const qs = (page.value === 1) ? {
     choices: allChoices
   } : {};
   qs.page = page.value;
@@ -69,7 +85,6 @@ async function updateData() {
     }
   }
   if (page.value === 1) {
-    bottom = false;
     for (const { name, choices, dependencies } of filters) {
       if (choices) {
         if (!Object.keys(dependencies || {}).some(name => !route.query[name])) {
@@ -81,10 +96,22 @@ async function updateData() {
   const response = await apos.http.get('/api/v1/ticket', {
     qs
   });
+
+  if (queryTimeout) {
+    // We should cause no state changes, we have
+    // already started a new query that will
+    // replace this one
+    return;
+  }
+
+  // Synchronous state changes
+  if (bottom === 1) {
+    bottom = false;
+  }
   if (!response.results.length) {
     bottom = true;
   } else {
-    if (page === 1) {
+    if (page.value === 1) {
       tickets.value = response.results;
     } else {
       tickets.value.push(...response.results);
@@ -98,6 +125,7 @@ async function updateData() {
     }
   }
   loading.value = false;
+
   if (!bottom) {
     // After rendering what we just got, we can look
     // at whether the spy is still visible
@@ -143,18 +171,17 @@ function handleInfiniteScroll(entries) {
   <nav class="primary-nav">
     Tickets
   </nav>
-  <section v-if="loading && (page === 1)">
-    Loading...
-  </section>
-  <section v-else>
+  <section>
     <div class="actions">
       <RouterLink to="/ticket/create"><PencilPlus /> New Ticket</RouterLink>
     </div>
     <section>
       <label v-for="filter in labeled">
         <span>{{ filter.label }}</span>
-        <Select :empty="true" :disabled="!filter.choices.value?.length" v-model="filter.current.value" :choices="filter.choices.value" />
+        <Select v-if="filter.type !== 'autocomplete'" :empty="true" :disabled="!filter.choices.value?.length" v-model="filter.current.value" :choices="filter.choices.value" />
+        <input v-else v-model="filter.current.value" />
       </label>
+      <button class="clear" v-if="Object.keys(route.query).length > 0" @click="clearRouteQuery">Clear Filters</button>
     </section>
     <section>
       <table>
@@ -219,5 +246,9 @@ label {
 }
 label span {
   width: 240px;
+}
+.clear {
+  display: block;
+  margin-bottom: 1em;
 }
 </style>
