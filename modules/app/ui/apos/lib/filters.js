@@ -1,4 +1,5 @@
 import { ref, onMounted } from 'vue';
+import { agent } from './agent.js';
 
 const filters = [
   {
@@ -66,7 +67,6 @@ const filters = [
 export default filters;
 
 export const editFilters = filters.filter(filter => {
-  const agent = apos?.login?.user?.role && (apos.login.user.role !== 'guest');
   if (!filter.edit) {
     return false;
   }

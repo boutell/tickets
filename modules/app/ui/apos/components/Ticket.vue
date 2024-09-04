@@ -2,7 +2,9 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, RouterLink } from 'vue-router';
 import Pencil from 'vue-material-design-icons/Pencil.vue';
+import PencilPlus from 'vue-material-design-icons/PencilPlus.vue';
 import { editFilters as filters } from '../lib/filters.js';
+import { agent } from '../lib/agent.js';
 import Age from './Age.vue';
 
 const ticket = ref(null);
@@ -30,6 +32,17 @@ function getLabel(name) {
   const value = ticket.value[name];
   const choices = apos.ticket.schema.find(field => field.name === name).choices;
   return choices.find(choice => choice.value === value)?.label || '';
+}
+
+function myComment(comment) {
+  return comment._author?.[0]?._id === apos.login.user._id;
+}
+
+async function deleteComment(comment) {
+  await apos.http.delete(`/api/v1/comment/${comment._id}`, {
+    busy: true
+  });
+  ticket._comments = ticket._comments.filter(c => c._id !== comment._id);
 }
 </script>
 <template>
@@ -66,16 +79,19 @@ function getLabel(name) {
         <span class="value" v-else>{{ getLabel(filter.name) }}</span>
       </div>
     </section>
-    <div class="field">
-      <span class="label">Description</span>
-      <div class="user-content" v-html="ticket.description"></div>
-    </div>
     <section class="comments">
       <h2>Comments</h2>
     </section>
+    <div class="actions">
+      <RouterLink :to="`/ticket/${ticket.ticketNumber}/comment/create`"><PencilPlus /> New Comment</RouterLink>
+    </div>
     <article v-for="comment in ticket._comments">
-      <h4>{{ comment._author?.[0]?.title || 'unknown' }}</h4>
-      <h5><Age :at="comment.createdAt" /> ago {{ comment._id }}</h5>
+      <h4>
+        {{ comment._author?.[0]?.title || 'unknown' }}
+        <RouterLink v-if="myComment(comment)" :to="`/ticket/${ticket.ticketNumber}/comment/${ticket._id}/edit`"><Pencil /> Edit</RouterLink>
+        <a v-if="agent" @click.prevent="deleteComment(comment._id)">x Delete</a>
+      </h4>
+      <h5><Age :at="comment.createdAt" /> ago</h5>
       <div class="user-content" v-html="comment.text">
       </div>
     </article>
