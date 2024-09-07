@@ -21,7 +21,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Select from './Select.vue';
 import AttachmentButton from './AttachmentButton.vue';
 import { Editor, EditorContent } from '@tiptap/vue-3'
-import { ref, onBeforeUnmount, watch } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import FormatBold from 'vue-material-design-icons/FormatBold.vue';
 import FormatItalic from 'vue-material-design-icons/FormatItalic.vue';
 import FormatStrikethrough from 'vue-material-design-icons/FormatStrikethrough.vue';
@@ -192,6 +192,12 @@ function getButtonType(button) {
   }
 }
 
+onMounted(() => {
+  // No nuance required since right now we only
+  // use it in comments, which are just rich text
+  editor.value.commands.focus();
+});
+
 onBeforeUnmount(() => {
   editor.value.destroy();
 });
@@ -201,8 +207,6 @@ onBeforeUnmount(() => {
 @import '../lib/styles/user-content.scss';
 
 .container {
-  min-height: 400px;
-  max-height: 80%;
   width: 560px;
 }
 .content {
@@ -229,11 +233,12 @@ onBeforeUnmount(() => {
 
 /* Basic editor styles */
 :deep(.tiptap) {
-  height: 60vh;
+  max-height: 60vh;
   overflow: auto;
   border: 1px solid #767676;
   // So we can see the caret
   padding: 4px;
+  margin-bottom: 8px;
   @include user-content;
 }
 </style>

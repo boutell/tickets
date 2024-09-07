@@ -1,15 +1,15 @@
 <template>
 <section class="comments">
-  <h2>Comments</h2>
   <div class="actions">
     <button v-if="!newComment" @click="newComment = true"><PencilPlus /> New Comment</button>
+    <h4 v-else>New Comment</h4>
   </div>
   <EditComment v-if="newComment" @cancel="cancelEditComment(comment)" @save="insertComment" />
   <article v-for="comment in comments">
     <h4>
-      {{ comment._author?.[0]?.title || 'unknown' }}
-      <a v-if="myComment(comment) && (!editing)" @click.prevent="editComment(comment)"><Pencil /> Edit</a>
-      <a v-if="agent || myComment(comment)" @click.prevent="deleteComment(comment)">x Delete</a>
+      <span class="author">{{ comment._author?.[0]?.title || 'unknown' }}</span>
+      <button v-if="myComment(comment) && (!editing)" @click.prevent="editComment(comment)"><Pencil /> Edit</button>
+      <button v-if="agent || myComment(comment)" @click.prevent="deleteComment(comment)"><Delete /> Delete</button>
     </h4>
     <h5><Age :at="comment.createdAt" /> ago</h5>
     <div v-if="editing !== comment._id" class="user-content" v-html="comment.text">
@@ -19,11 +19,19 @@
 </section>
 </template>
 
+<style scoped lang="sass">
+  h4 {
+    display: flex;
+    gap: 8px;
+    align-items: end;
+  }
+</style>
+
 <script setup>
 import { ref } from 'vue';
-import { RouterLink } from 'vue-router';
 import PencilPlus from 'vue-material-design-icons/PencilPlus.vue';
 import Pencil from 'vue-material-design-icons/Pencil.vue';
+import Delete from 'vue-material-design-icons/Delete.vue';
 import { agent } from '../lib/agent.js';
 import Age from './Age.vue';
 
