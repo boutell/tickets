@@ -49,7 +49,6 @@
 import { ref, reactive, onMounted, watch } from 'vue';
 import { useRouter, useRoute, RouterLink } from 'vue-router';
 import Pencil from 'vue-material-design-icons/Pencil.vue';
-import Editor from './Editor.vue';
 import { editFilters as filters } from '../lib/filters.js';
 
 const router = useRouter();

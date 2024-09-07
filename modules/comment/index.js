@@ -1,3 +1,6 @@
+const sanitizeHtml = require('sanitize-html');
+const cheerio = require('cheerio');
+
 module.exports = {
   options: {
     localized: false,
@@ -66,14 +69,14 @@ module.exports = {
   handlers(self) {
     return {
       beforeInsert: {
-        setTitle(req, doc) {
-          return self.setTitle(req, doc);
-        },
-        setSlug(req, doc) {
+        setTitleAndSlug(req, doc) {
+          self.setTitle(req, doc);
           self.setSlug(req, doc);
         },
-        setOrganization(req, doc) {
-          self.setOrganization(req, doc);
+        setAuthor(req, doc) {
+          // Backstop so you can't fake a comment
+          // as anyone else
+          doc._author = [ req.user ];
         }
       },
       beforeUpdate: {
@@ -82,14 +85,11 @@ module.exports = {
         },
         setSlug(req, doc) {
           self.setSlug(req, doc);
-        },
-        setOrganization(req, doc) {
-          self.setOrganization(req, doc);
         }
       },
       beforeSave: {
         async normalizeTextAndAttachments(req, doc) {
-          await self.apos.ticket.normalizeTextAndAttachments(req, doc, 'text');
+          await self.normalizeTextAndAttachments(req, doc);
         }
       }
     }
@@ -102,8 +102,42 @@ module.exports = {
       setSlug(req, doc) {
         doc.slug = self.options.slugPrefix + self.apos.util.slugify(doc.title);
       },
-      setOrganization(req, doc) {
-        doc.organizationIds = [ doc._ticket[0]._organization[0]._id ];
+      async normalizeTextAndAttachments(req, doc) {
+        doc.text = sanitizeHtml(doc.text, {
+          allowedTags: sanitizeHtml.defaults.allowedTags.concat([ 'figure', 'img' ]),
+          allowedAttributes: {
+            ...sanitizeHtml.defaults.allowedAttributes,
+            a: [ 'href', 'download' ]
+          }
+        });
+        const $ = cheerio.load(doc.text);
+        const $links = $('a[download]');
+        const ids = [];
+        $links.each((i, e) => {
+          const $link = $(e);
+          console.log($link);
+          console.log(`>${$link.prop('outerHTML')}`);
+          const href = $link.attr('href');
+          const matches = href.match(/^\/uploads\/attachments\/(\w+)[^?#]+$/);
+          if (!matches) {
+            $link.remove();
+            return;
+          }
+          ids.push(matches[1]);
+        });
+        // For import. Why do you do this Zendesk? Why?
+        const $nestedCode = $('pre>code');
+        $nestedCode.each((i, e) => {
+          const $code = $(e);
+          const text = $code.text();
+          const $pre = $nestedCode.parent();
+          $pre.text(text);
+        });
+        const attachments = await self.apos.attachment.db.find({
+          _id: { $in: ids }
+        }).toArray();
+        doc.attachments = attachments;
+        doc.text = $.html();
       }
     };
   }

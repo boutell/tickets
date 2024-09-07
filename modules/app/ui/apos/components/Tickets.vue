@@ -186,7 +186,9 @@ function handleInfiniteScroll(entries) {
     <section>
       <table>
         <thead>
-          <th>#</th><th>Age</th><th>Customer</th><th>Subject</th>
+          <tr>
+            <th>#</th><th>Age</th><th>Customer</th><th>Subject</th>
+          </tr>
         </thead>
         <tbody>
           <tr v-for="ticket in tickets" :key="ticket._id">

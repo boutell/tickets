@@ -4,6 +4,7 @@ import { useRoute, RouterLink } from 'vue-router';
 import Pencil from 'vue-material-design-icons/Pencil.vue';
 import { editFilters as filters } from '../lib/filters.js';
 import Age from './Age.vue';
+import Comments from './Comments.vue';
 
 const ticket = ref(null);
 const notFound = ref(false);
@@ -66,6 +67,11 @@ function getLabel(name) {
         <span class="value" v-else>{{ getLabel(filter.name) }}</span>
       </div>
     </section>
+    <Comments
+      :ticket-number="ticket.ticketNumber"
+      :ticket-id="ticket._id"
+      :comments="ticket._comments"
+    />
   </article>
   <article v-else-if="notFound">
     <h2>Not Found</h2>
