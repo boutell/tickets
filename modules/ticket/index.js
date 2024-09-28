@@ -1,8 +1,13 @@
+const orgRestriction = require('../../lib/org-restriction.js');
+
 module.exports = {
   options: {
     localized: false,
     slugPrefix: 'ticket-',
-    alias: 'ticket'
+    alias: 'ticket',
+    viewRole: 'guest',
+    editRole: 'guest',
+    publishRole: 'guest'
   },
   extend: '@apostrophecms/piece-type',
   fields: {
@@ -229,6 +234,13 @@ module.exports = {
     return {
       setSlug(req, doc) {
         doc.slug = self.options.slugPrefix + self.apos.util.slugify(doc.title);
+      }
+    };
+  },
+  queries(self, query) {
+    return {
+      builders: {
+        ticketsGuests: orgRestriction(query)
       }
     };
   }

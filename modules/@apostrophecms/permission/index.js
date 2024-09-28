@@ -5,9 +5,7 @@ module.exports = {
         if (req.user?.role !== 'guest') {
           return _super(req, action, target);
         }
-        if (_super(req, action, target)) {
-          return true;
-        }
+        const type = target?.type || target;
         if (type === '@apostrophecms/user') {
           if (action !== 'view') {
             return false;
@@ -19,13 +17,14 @@ module.exports = {
           // Target is a ticket or comment, so it has singular _organization
           return (req.user._organizationsIds || []).find(id => (target._organizationIds || []).includes(id));
         }
-        return false;
+        return _super(req, action, target);
       },
       criteria(_super, req, action, target) {
         if (req.user?.role !== 'guest') {
           return _super(req, action, target);
         }
-        const type = target.type || target;
+        const type = target?.type || target;
+        console.log(`${action} ${type}`);
         if (type === '@apostrophecms/user') {
           if (action !== 'view') {
             return _super(req, action, target);
@@ -70,4 +69,4 @@ module.exports = {
       }
     }
   }
-}
+};

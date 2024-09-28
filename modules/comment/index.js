@@ -1,3 +1,5 @@
+const orgRestriction = require('../../lib/org-restriction.js');
+
 const sanitizeHtml = require('sanitize-html');
 const cheerio = require('cheerio');
 
@@ -5,7 +7,10 @@ module.exports = {
   options: {
     localized: false,
     slugPrefix: 'comment-',
-    alias: 'comment'
+    alias: 'comment',
+    viewRole: 'guest',
+    editRole: 'guest',
+    publishRole: 'guest'
   },
   extend: '@apostrophecms/piece-type',
   fields: {
@@ -138,6 +143,13 @@ module.exports = {
         }).toArray();
         doc.attachments = attachments;
         doc.text = $.html();
+      }
+    };
+  },
+  queries(self, query) {
+    return {
+      builders: {
+        ticketsGuests: orgRestriction(query)
       }
     };
   }

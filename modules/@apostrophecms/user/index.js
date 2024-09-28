@@ -1,4 +1,9 @@
+const orgRestriction = require('../../../lib/org-restriction.js');
+
 module.exports = {
+  options: {
+    viewRole: 'guest'
+  },
   fields: {
     add: {
       _organizations: {
@@ -11,5 +16,12 @@ module.exports = {
         textarea: true
       }
     }
+  },
+  queries(self, query) {
+    return {
+      builders: {
+        ticketsGuests: orgRestriction(query)
+      }
+    };
   }
 };
