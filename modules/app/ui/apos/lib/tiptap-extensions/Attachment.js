@@ -3,8 +3,6 @@ import {
   Node
 } from '@tiptap/core';
 
-console.log('*** initializing');
-
 export default options => {
   return Node.create({
     name: 'attachment',
@@ -30,7 +28,6 @@ export default options => {
         url: {
           default: null,
           parseHTML(element) {
-            console.log('calling attachmentId');
             return getAttachmentUrl(element);
           }
         }

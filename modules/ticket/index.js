@@ -2,6 +2,7 @@ const orgRestriction = require('../../lib/org-restriction.js');
 
 module.exports = {
   options: {
+    guestApiAccess: true,
     localized: false,
     slugPrefix: 'ticket-',
     alias: 'ticket',
@@ -240,7 +241,7 @@ module.exports = {
   queries(self, query) {
     return {
       builders: {
-        ticketsGuests: orgRestriction(query)
+        ticketsGuests: orgRestriction(query, 'organizationIds')
       }
     };
   }

@@ -55,7 +55,6 @@ const router = useRouter();
 const route = useRoute();
 const creating = ref(!route.params.number);
 const loading = ref(true);
-console.log(`* ${filters.length}`);
 const ticket = reactive({});
 const notFound = ref(false);
 const choices = reactive({});
@@ -94,10 +93,8 @@ onMounted(async () => {
   for (const filter of filters) {
     if (filter.relationship) {
       if (!filter.multiple) {
-        console.log(`** ${filter.name}`);
         ticket[filter.name] = ticket[filter.name]?.[0]?._id;
       } else {
-        console.log(`*** ${filter.name}`);
         ticket[filter.name] = (ticket[filter.name] || []).map(value => value._id);
       }
     }
@@ -184,14 +181,11 @@ async function submit() {
       continue;
     }
     const value = ticket[filter.name];
-    console.log(`>> ${filter.name}`);
-    console.log(`>>> ${JSON.stringify(value)}`);
     if (!filter.multiple) {
       body[filter.name] = value ? [ { _id: value } ] : [];
     } else {
       body[filter.name] = value.map(value => ({ _id: value }));
     }
-    console.log(`>>>> ${JSON.stringify(body[filter.name])}`);
   }
   let result = ticket._id ?
     await apos.http.patch(`/api/v1/ticket/${ticket._id}`, {

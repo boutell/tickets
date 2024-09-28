@@ -52,7 +52,6 @@ module.exports = {
               const attachmentsDir = `${commentsDir}/${comment.id}/attachments`;
               ensure(attachmentsDir);
               for (attachment of comment.attachments) {
-                console.log(attachment);
                 const fullName = attachment.file_name;
                 let ext = extname(fullName);
                 if (ext) {
@@ -61,12 +60,9 @@ module.exports = {
                 const base = basename(fullName, ext);
                 const fileName = self.apos.util.slugify(base) + ext;
                 const name = `${attachmentsDir}/${attachment.id}.${fileName}`;
-                console.log(`> ${name}`);
                 if (!fs.existsSync(name)) {
-                  console.log(`Fetching ${name}`);
                   const response = await fetch(attachment.content_url);
                   fs.writeFileSync(name, Buffer.from(await response.arrayBuffer()));
-                  console.log('... fetched');
                 }
               }
               write(`${commentsDir}/${comment.id}.json`, comment);
@@ -97,13 +93,11 @@ module.exports = {
             if (elapsedMinutes < allowedMinutes) {
               await pause(allowedMinutes - elapsedMinutes);
             }
-            console.log(`> ${url}`);
             const result = await self.apos.http.get(url, {
               headers: {
                 authorization
               }
             });
-            console.log(`<`);
             calls++;
             return result;
           }
@@ -163,7 +157,6 @@ module.exports = {
               user.notes = info.notes;
               user.legacy = info;
               setIds(user, 'user', info);
-              console.log(`Inserting: ${user.title}`);
               await self.apos.user.insert(req, user);
               await fixTimes(user, info);
             }
@@ -200,7 +193,6 @@ module.exports = {
             const legacyTicketId = info.id;
             lastTicketNumber = Math.max(lastTicketNumber, ticket.ticketNumber);
             setIds(ticket, 'ticket', info);
-            console.log(`inserting ${ticket._id}`);
             ticket = await self.apos.ticket.insert(req, ticket);
             await fixTimes(ticket, info);
 
@@ -234,38 +226,28 @@ module.exports = {
                   console.error(`Attachment skipped: ${attachmentFile}`);
                 }
               }
-              if (comment.text.includes('<img')) {
-                console.log('has img');
-              }
               comment.text = comment.text.replace(/<img src="([^"]+)"[^>]+>/g, (all, url) => {
-                console.log('match');
                 const q = url.indexOf('?name=');
                 if (q === -1) {
                   return all;
                 }
-                console.log('found ?name');
                 const fullName = decodeURIComponent(url.substring(q + '?name='.length));
                 const ext = extname(fullName);
                 const base = basename(fullName, ext);
                 const name = self.apos.util.slugify(base);
-                console.log(`decoded as ${name}`);
                 const attachment = attachments.find(attachment => {
-                  console.log(`* ${attachment.name}`);
                   return attachment.name.endsWith(`-${name}`);
                 });
                 if (attachment) {
                   attachments = attachments.filter(a => attachment !== a);
-                  console.log('match');
                   return attachmentMarkup(attachment);
                 }
                 return all;
               });
               comment.text += '<!-- end of regular text -->\n';
               for (const attachment of attachments) {
-                console.log('handled other attachment');
                 comment.text += attachmentMarkup(attachment) + '\n';
               }
-              console.log(`inserting ${comment._id}`);
               await self.apos.comment.insert(req, comment);
               await fixTimes(comment, info);
             }
@@ -308,7 +290,6 @@ module.exports = {
 
           function attachmentMarkup(attachment) {
             const src = self.apos.attachment.url(attachment, { size: 'full' });
-            console.log(`SRC: ${src}`);
             const name = attachment.name;
             const extension = attachment.extension;
             const img = [ 'jpg', 'png', 'gif', 'webp', 'svg' ].includes(extension) ?

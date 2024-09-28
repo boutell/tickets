@@ -204,7 +204,7 @@ function handleInfiniteScroll(entries) {
             </td>
             <td class="customer">
               <RouterLink :to="`/ticket/${ticket.ticketNumber}`">
-                {{ ticket._customer[0].title }}
+                {{ ticket._customer?.[0]?.title || 'not visible' }}
               </RouterLink>
             </td>
             <td>

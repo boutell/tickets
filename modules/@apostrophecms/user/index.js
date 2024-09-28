@@ -2,6 +2,7 @@ const orgRestriction = require('../../../lib/org-restriction.js');
 
 module.exports = {
   options: {
+    guestApiAccess: true,
     viewRole: 'guest'
   },
   fields: {
@@ -20,7 +21,16 @@ module.exports = {
   queries(self, query) {
     return {
       builders: {
-        ticketsGuests: orgRestriction(query)
+        usersGuests: orgRestriction(query, 'organizationsIds', [
+          {
+            // Guests are allowed to see all non-guests
+            // (staff members) so they can interact
+            // with them
+            role: {
+              $ne: 'guest'
+            }
+          }
+        ])
       }
     };
   }

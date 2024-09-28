@@ -1,5 +1,8 @@
+const orgRestriction = require('../../lib/org-restriction.js');
+
 module.exports = {
   options: {
+    guestApiAccess: true,
     localized: false,
     slugPrefix: 'organization-',
     alias: 'organization'
@@ -101,6 +104,13 @@ module.exports = {
     return {
       setSlug(req, doc) {
         doc.slug = self.options.slugPrefix + self.apos.util.slugify(doc.title);
+      }
+    };
+  },
+  queries(self, query) {
+    return {
+      builders: {
+        ticketsGuests: orgRestriction(query, '_id')
       }
     };
   }

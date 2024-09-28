@@ -5,6 +5,7 @@ const cheerio = require('cheerio');
 
 module.exports = {
   options: {
+    guestApiAccess: true,
     localized: false,
     slugPrefix: 'comment-',
     alias: 'comment',
@@ -120,8 +121,6 @@ module.exports = {
         const ids = [];
         $links.each((i, e) => {
           const $link = $(e);
-          console.log($link);
-          console.log(`>${$link.prop('outerHTML')}`);
           const href = $link.attr('href');
           const matches = href.match(/^\/uploads\/attachments\/(\w+)[^?#]+$/);
           if (!matches) {
@@ -149,7 +148,7 @@ module.exports = {
   queries(self, query) {
     return {
       builders: {
-        ticketsGuests: orgRestriction(query)
+        commentsGuests: orgRestriction(query, 'organizationIds')
       }
     };
   }
