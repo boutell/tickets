@@ -13,15 +13,15 @@ module.exports = {
           let rateLimit = argv['rate-limit'] ? parseInt(argv['rate-limit']) : 190;
           const data = `${__dirname}/../../data/zendesk`;
           ensure(data);
-          const token = argv['zendesk-token'];
+          const token = argv['zendesk-token'] || process.env.TICKETS_ZENDESK_TOKEN;
           if (!token) {
             throw new Error('--zendesk-token is required');
           }
-          const username = argv['zendesk-username'];
+          const username = argv['zendesk-username'] || process.env.TICKETS_ZENDESK_USERNAME;
           if (!username) {
             throw new Error('--zendesk-username is required');
           }
-          const subdomain = argv['zendesk-subdomain'];
+          const subdomain = argv['zendesk-subdomain'] || process.env.TICKETS_ZENDESK_SUBDOMAIN;
           if (!subdomain) {
             throw new Error('--zendesk-subdomain is required');
           }

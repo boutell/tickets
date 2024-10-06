@@ -81,8 +81,11 @@ module.exports = {
         },
         setAuthor(req, doc) {
           // Backstop so you can't fake a comment
-          // as anyone else
-          doc._author = [ req.user ];
+          // as anyone else. But: Do not do this in the
+          // command line import task
+          if (req.user?._id) {
+            doc._author = [ req.user ];
+          }
         }
       },
       beforeUpdate: {
