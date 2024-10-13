@@ -1,5 +1,3 @@
-const orgRestriction = require('../../lib/org-restriction.js');
-
 const sanitizeHtml = require('sanitize-html');
 const cheerio = require('cheerio');
 
@@ -52,6 +50,7 @@ module.exports = {
       _ticket: {
         type: 'relationship',
         withType: 'ticket',
+        withRelationships: [ '_organization' ],
         min: 1,
         max: 1,
         required: true
@@ -99,6 +98,12 @@ module.exports = {
       beforeSave: {
         async normalizeTextAndAttachments(req, doc) {
           await self.normalizeTextAndAttachments(req, doc);
+        },
+        setOrganizationIds(req, doc) {
+          const ticket = doc._ticket?.[0];
+          if (ticket) {
+            doc.organizationIds = ticket.organizationIds;
+          }
         }
       }
     }
@@ -145,13 +150,6 @@ module.exports = {
         }).toArray();
         doc.attachments = attachments;
         doc.text = $.html();
-      }
-    };
-  },
-  queries(self, query) {
-    return {
-      builders: {
-        commentsGuests: orgRestriction(query, 'organizationIds')
       }
     };
   }

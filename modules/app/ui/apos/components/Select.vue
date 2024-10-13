@@ -1,4 +1,5 @@
-<script setup>
+z<script setup>
+import { watch } from 'vue';
 const model = defineModel();
 // Useful when you need to distinguish user changes
 // from your own changes caused by 2-way binding
@@ -26,6 +27,20 @@ const props = defineProps({
     default: () => '--'
   }
 });
+watch(() => props.choices, () => {
+  selectOnlyChoice();
+});
+selectOnlyChoice();
+
+function selectOnlyChoice() {
+  if (props.choices) {
+    if (props.choices.length === 1) {
+      if (model.value !== props.choices[0].value) {
+        model.value = props.choices[0].value;
+      }
+    }
+  }
+}
 </script>
 
 <template>

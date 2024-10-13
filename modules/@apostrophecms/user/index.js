@@ -1,5 +1,3 @@
-const orgRestriction = require('../../../lib/org-restriction.js');
-
 module.exports = {
   options: {
     guestApiAccess: true,
@@ -17,21 +15,5 @@ module.exports = {
         textarea: true
       }
     }
-  },
-  queries(self, query) {
-    return {
-      builders: {
-        usersGuests: orgRestriction(query, 'organizationsIds', [
-          {
-            // Guests are allowed to see all non-guests
-            // (staff members) so they can interact
-            // with them
-            role: {
-              $ne: 'guest'
-            }
-          }
-        ])
-      }
-    };
   }
 };
