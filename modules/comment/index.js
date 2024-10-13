@@ -149,7 +149,7 @@ module.exports = {
           _id: { $in: ids }
         }).toArray();
         doc.attachments = attachments;
-        doc.text = $.html();
+        doc.text = $('body').html();
       }
     };
   }
