@@ -14,39 +14,41 @@ module.exports = {
         if (role === 'admin') {
           return true;
         }
-        const type = target && (target.type || target);
-        if (!type) {
-          console.log('===> weirdie:', action);
-        }
-        if (action === 'create') {
-          if ([ 'comment', 'ticket' ].includes(type)) {
+        if (role === 'guest') {
+          if (action === 'upload-attachment') {
             return true;
           }
-        }
-        if (['view', 'view-draft'].includes(action)) {
-          return true;
-        }
-        if (['create','edit','delete','publish'].includes(action)) {
-          if (type === 'ticket') {
-            if ((typeof target) === 'string') {
-              // In general they can edit *some*
+          const type = target && (target.type || target);
+          if (action === 'create') {
+            if ([ 'comment', 'ticket' ].includes(type)) {
               return true;
             }
-            return target.customerIds.includes(req.user._id) || target.organizationIds.find(id => req.user.organizationsIds.includes(id));
           }
-          if (type === 'comment') {
-            if ((typeof target) === 'string') {
-              // In general they can edit *some*
-              return true;
+          if (['view', 'view-draft'].includes(action)) {
+            return true;
+          }
+          if (['create','edit','delete','publish'].includes(action)) {
+            if (type === 'ticket') {
+              if ((typeof target) === 'string') {
+                // In general they can edit *some*
+                return true;
+              }
+              return target.customerIds.includes(req.user._id) || target.organizationIds.find(id => req.user.organizationsIds.includes(id));
             }
-            return (target.authorIds || []).includes(req.user._id);
+            if (type === 'comment') {
+              if ((typeof target) === 'string') {
+                // In general they can edit *some*
+                return true;
+              }
+              return (target.authorIds || []).includes(req.user._id);
+            }
           }
+          return false;
         }
         return false;
       },
       criteria(req, action) {
         const result = body(req, action);
-        log(result);
         return result;
         function body() {
           const role = req.user?.role;

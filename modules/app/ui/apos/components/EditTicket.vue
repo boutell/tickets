@@ -31,14 +31,6 @@
         <Select v-else :empty="true" :disabled="getDisabled(filter.name)" :required="isRequired(filter.name)" v-model="ticket[filter.name]" :choices="choices[filter.name]" />
       </label>
     </section>
-    <!-- Wrapping contenteditable in a label
-     does not work, by design. TODO: click handler
-     on the substitute label here to emulate the
-     usual focus passing via blatant JS cheating -->
-     <div class="editor-wrapper">
-      <span>Description</span>
-      <Editor class="editor" v-model="ticket.description" />
-    </div>
     <button @click="cancel">Cancel</button>
     &nbsp;
     <button type="submit">Submit</button>

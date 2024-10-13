@@ -97,22 +97,6 @@ module.exports = {
         type: 'relationship',
         withType: '@apostrophecms/user'
       },
-      attachments: {
-        type: 'array',
-        // Read-only because it is actually managed
-        // by the rich text editor (inclusion of
-        // a download attribute in a link in description)
-        readOnly: true,
-        fields: {
-          add: {
-            file: {
-              type: 'attachment',
-              required: true,
-              fileGroups: [ 'office', 'images' ]
-            }
-          }
-        }
-      },
       _comments: {
         type: 'relationshipReverse',
         withRelationships: [ '_author' ]
@@ -130,10 +114,6 @@ module.exports = {
       misc: {
         label: 'Misc',
         fields: [ 'slug' ]
-      },
-      attachments: {
-        label: 'Attachments',
-        fields: [ 'attachments' ]
       }
     }
   },
